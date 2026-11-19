@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.13"
+VERSION = "1.3.14"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -2260,17 +2260,7 @@ n1 = [
              '<tr><td>それ以外の項目</td><td><code>_time</code>、<code>IpAddress</code>、<code>tried_accounts</code> など</td><td>学習には使われない。結果の表にそのまま残るので、外れ値になった行が「いつ、どこから、どのアカウントで」かを調べる手がかりになる。<code>_time</code> は fit には要らないが、Chart Type の「時間」で時間軸に並べるのに使う</td></tr>'
              '</tbody></table>'
              '<h4 style="margin:14px 0 4px;">eventstats で付けた comp_avg と comp_std はどう扱われるか</h4>'
-             '<p>GUI 1-4 の Define には Search 1-3 の SPL をそのまま貼るので、<code>eventstats</code> で付けた <code>comp_avg</code>（平均）と <code>comp_std</code>（標準偏差）も、表の列として AI Toolkit に<b>渡されます</b>。Data Preview にもこの2列が出ます。ただし、学習（fit）に使われるのは、Learn で選んだ <b>Field to analyze（unique_accounts）と Split by fields（dvc）だけ</b>です。ほかの列は学習に使われず、結果の表にそのまま残ります。</p>'
-             '<p>この環境で、Search 1-3 の表のままと、<code>fields - comp_avg comp_std HourOfDay DayOfWeek isWeekend</code> で5列を消した表とで同じ fit（dist=norm）をすると、4台とも BoundaryRanges（外れ値の境目）がまったく同じでした。AI Toolkit は、分布の形（平均やばらつきを含む）を unique_accounts から自分で推定するからです。しかも単位が違います。comp_avg と comp_std は <code>by IpAddress LogonType dvc</code>（送信元 × 端末）ごとの値ですが、Smart Outlier Detection は Split by の dvc（端末）ごとに学びます。たとえば MKRAEUSEN-D では、172.16.50.200 からの行の comp_avg は 約1.57 ですが、AI Toolkit が端末全体の11行から求めた平均は 約1.27 です（<code>| summary</code> の mean）。</p>'
-             '<p>では、なぜ付けてあるのか。資料の SPL は Technique #1（Search 1-2）の統計の計算を引き継いでいて、<code>sort - comp_avg</code> で平均の大きい端末から並べるのと、Search 1-2 の上限（平均＋標準偏差×2）と見比べるのに使います。<code>HourOfDay</code>（4時間ごとの時間帯）、<code>DayOfWeek</code>（曜日）、<code>isWeekend</code>（週末かどうか）は、Split by fields に選んだときだけ学習に使われる、分け方の候補です。ほかのデータで作るときに、eventstats で平均や標準偏差を付ける必要はありません。</p>'
-             '<h4 style="margin:14px 0 4px;">ほかのデータで作るときの手順</h4>'
-             '<table class="aitk-table"><thead><tr><th style="width:22%;">決めること</th><th>やること</th><th style="width:30%;">この Lab では</th></tr></thead><tbody>'
-             '<tr><td>1. 何を1行にするか</td><td><code>bin _time span=…</code> と <code>stats … by _time &lt;見たい単位&gt;</code> で、「一定の時間 × 見たい単位」を1行にする。生のイベントのままだと、1件ずつの値の分布になってしまう</td><td>2分間 × 送信元 IP × 端末</td></tr>'
-             '<tr><td>2. どの数値を見るか</td><td>攻撃で増える数を <code>stats</code> で作る。<code>count</code>（回数）、<code>dc(…)</code>（種類の数）、<code>sum(bytes)</code>（量）など。名前は英数字と _ にする。結果の列名は <code>IsOutlier(&lt;名前&gt;)</code> になり、<code>where \'IsOutlier(unique_accounts)\'=1</code> のようにシングルクォートで囲んで使う</td><td><code>dc(TargetUserName) as unique_accounts</code>（試したアカウントの種類）</td></tr>'
-             '<tr><td>3. 何ごとに分けるか</td><td>ふだんの値が違うものを Split by fields にする。端末、ユーザー、時間帯（<code>eval HourOfDay=strftime(_time,"%H")</code>）、平日か週末か、など。分けるほどグループごとの行は減る</td><td><code>dvc</code>（端末ごと）</td></tr>'
-             '<tr><td>4. 行は足りているか</td><td>グループごとの行が少ないと「Too few training points」の注意が出て、結果が安定しない。期間を長くするか、分け方を粗くする。グループごとの行数は <code>| stats count by &lt;Split by fields&gt;</code> か、保存したモデルの <code>| summary</code> の cardinality 列で見られる</td><td>端末ごとに5〜16行しかない（注意が出る）</td></tr>'
-             '<tr><td>5. 0 の行をどうするか</td><td><code>stats</code> は、イベントのなかった時間の行を作らない。「何も起きなかった2分間」も学ばせたいときは、<code>timechart</code> や <code>fillnull value=0</code> で 0 の行を作る</td><td>失敗のあった2分間だけ（0 の行は、アカウント名が空の失敗）</td></tr>'
-             '</tbody></table>'),
+             '<p>GUI 1-4 の Define には Search 1-3 の SPL をそのまま貼るので、<code>eventstats</code> で付けた <code>comp_avg</code>（平均）と <code>comp_std</code>（標準偏差）も、表の列として AI Toolkit に<b>渡されます</b>。Data Preview にもこの2列が出ます。ただし、学習（fit）に使われるのは、Learn で選んだ <b>Field to analyze（unique_accounts）と Split by fields（dvc）だけ</b>です。ほかの列は学習に使われず、結果の表にそのまま残ります。</p>'),
     {"id": "n1-4", "tag": "GUI 1-4", "title": "Smart Outlier Detection で外れ値を探す",
      "body": ["AI Toolkit アプリの <b>Experiments</b> で <b>Smart Outlier Detection</b> を選び、Experiment を作ります。"],
      "extra_html": exp_steps([
