@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.7"
+VERSION = "1.3.8"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -2221,6 +2221,12 @@ n1 = [
     {"id": "n1-2", "tag": "Search 1-2", "title": "単純な統計でスプレーを見つける（Technique #1）",
      "body": ["資料の SPL です。2分ごとに、送信元と端末の組ごとに、何種類のアカウントを試したかを数えます。",
               "その組のふだんの平均＋標準偏差×2 を上限にし、<b>4アカウント以上</b>で、かつ上限以上の2分間だけを残します。決め打ちの条件と統計の条件を組み合わせた、説明しやすい検知です。"],
+     "extra_html": ('<div class="aitk-check"><h4>外れ値になる条件（すべて満たすもの）</h4>'
+                    + ul(["<b>同じ組</b>：同じ送信元 IP（IpAddress）から、同じ端末（dvc）へのログオン",
+                          "<b>同じ2分間</b>：<code>bin _time span=2m</code> でそろえた、06:08〜06:10 のような決まった区切りの中。06:09 と 06:11 のように2分以内でも、区切りをまたぐと別々に数える",
+                          "<b>4つ以上の違うアカウント</b>：<code>unique_accounts</code> は失敗の回数（<code>failed_logons</code>）ではなく、失敗したアカウント名の種類（<code>dc(TargetUserName)</code>）。1つのアカウントを何度失敗しても1と数える",
+                          "<b>ふだんより多い</b>：その組の <code>unique_accounts</code> の平均＋標準偏差×2（upperBound）以上。172.16.50.200 → MKRAEUSEN-D の組では約3.84"])
+                    + '<p class="aitk-note">多くのアカウントを少しずつ試す「パスワードスプレー」を見つける条件です。1つのアカウントを何度も試す「総当たり」は、<code>by</code> に TargetUserName を入れて <code>count</code> で絞る別のサーチになります。</p></div>'),
      "spl": N1_STATS, **N_JUL, "range_note": N_RANGE_JUL,
      "views": [("table", "外れ値になった2分間")],
      "refs": ["n55_0.png"],
