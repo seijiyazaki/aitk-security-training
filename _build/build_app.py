@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.18"
+VERSION = "1.3.19"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -89,7 +89,7 @@ def step_rows(s):
             + "</div>")
     ref = ""
     if s.get("refs"):
-        ref = ('<panel depends="$show_ref$"><title>資料の画面（参考）</title><html><div class="aitk-refs">'
+        ref = ('<panel><title>資料の画面（参考）</title><html><div class="aitk-refs">'
                + "".join(img(r) for r in s["refs"]) + "</div></html></panel>")
     row1 = f"<row><panel><html>{head}</html></panel>{ref}</row>"
     if "spl" not in s:  # GUI-only step: explanation and screenshots, nothing to run
@@ -241,11 +241,8 @@ def scenario_form(label, intro_html, items):
                 bases.append(it["_base"])
         else:
             parts.extend([divider(), it])
-    fieldset = ('<fieldset submitButton="false" autoRun="true">'
-                '<input type="checkbox" token="show_ref"><label>表示</label>'
-                '<choice value="1">資料の画面キャプチャを横に並べる</choice><default>1</default></input></fieldset>')
     return (f'<form version="1.1" theme="light" stylesheet="aitk.css" hideEdit="false">'
-            f"<label>{xesc(label)}</label>{''.join(bases)}{fieldset}"
+            f"<label>{xesc(label)}</label>{''.join(bases)}"
             + text_row(intro_html, "aitk-hero") + "".join(parts) + "</form>")
 
 
