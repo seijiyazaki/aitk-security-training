@@ -1,0 +1,11 @@
+Request_ID,HTTP_Code,Endpoint,Error_Message,Root_Cause,Classification
+REQ-001,500,/api/user/login,The server encountered an unexpected condition which prevented it from fulfilling the request.,The application server failed to establish a connection with the user database due to a timeout.,Critical
+REQ-002,404,/api/products/123,The requested product resource could not be found on the server.,The product ID provided in the request URL does not match any existing records in the product catalog.,Non-Critical
+REQ-003,403,/admin/dashboard,Access to the requested admin dashboard is forbidden.,The user tried to access an administrative panel without sufficient permissions or valid authorization token.,Critical
+REQ-004,408,/api/upload,The server timed out waiting for the request.,"The client-side upload process took too long, causing the server to abandon the connection.",Non-Critical
+REQ-005,502,/api/payment,The server received an invalid response from the upstream server while acting as a gateway.,The payment service backend returned an unexpected error or failed to respond during the transaction process.,Critical
+REQ-006,400,/api/register,The server could not understand the request due to invalid syntax.,The JSON payload sent by the client contained syntax errors or missing required fields.,Non-Critical
+REQ-007,503,/api/report,The server is currently unavailable due to overload or maintenance.,A spike in traffic or scheduled maintenance rendered the reporting service temporarily unreachable.,Critical
+REQ-008,401,/api/user/settings,Authentication is required and has failed or has not yet been provided.,The user attempted to access personal settings without including a valid authentication token in the request header.,Critical
+REQ-009,422,/api/order,"The server understands the content type and syntax, but was unable to process the instructions.",One or more required fields in the order request failed validation checks due to incorrect format or missing data.,Non-Critical
+REQ-010,504,/api/checkout,The server acting as a gateway timed out while waiting for a response from an upstream server.,"The third-party API responsible for processing the final checkout did not respond in time, causing a timeout.",Critical

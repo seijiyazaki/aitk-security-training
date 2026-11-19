@@ -1,0 +1,15 @@
+# 元の資料（大きく、再配布しない）
+*.pptx
+# 生成物とパッケージ（.spl は GitHub Release に添付する）
+aitk_security_training/
+*.spl
+# 取り込み用の元データ（大きい／検証環境向け）
+stream_http.json
+s4n_wineventlog.jsonl
+/numenta_art_daily_flatmiddle.csv
+/http_error_dataset.csv
+_build/slides/
+# 検証環境の接続情報を含むローカル用メモ
+HANDOFF.md
+.DS_Store
+__pycache__/

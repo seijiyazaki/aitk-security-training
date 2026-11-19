@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 260" font-family="Helvetica, Arial, 'Hiragino Sans', 'Noto Sans JP', sans-serif">
+  <rect width="960" height="260" fill="#ffffff"/>
+  <text x="480" y="26" font-size="16" font-weight="700" text-anchor="middle" fill="#1b2a33">dist=auto は4種類の分布を当てはめ、いちばん合うものを選ぶ（赤い部分が threshold=0.01 の外れ値領域）</text>
+  <!-- panel helper: each 220 wide, baseline y=190 -->
+  <g transform="translate(20,0)">
+    <line x1="10" y1="190" x2="210" y2="190" stroke="#1b2a33"/>
+    <path d="M10,189 C50,188 70,80 110,70 C150,80 170,188 210,189" fill="#5b8fb9" opacity="0.25" stroke="#2e7d32" stroke-width="2.5"/>
+    <path d="M10,190 L10,189 C20,189 28,188 34,186 L34,190 Z" fill="#e4572e"/>
+    <path d="M186,190 L186,186 C192,188 200,189 210,189 L210,190 Z" fill="#e4572e"/>
+    <text x="110" y="215" font-size="15" font-weight="700" text-anchor="middle" fill="#1b2a33">norm（正規分布）</text>
+    <text x="110" y="236" font-size="12" text-anchor="middle" fill="#5b6b75">左右対称。両側の端を外れ値に</text>
+  </g>
+  <g transform="translate(255,0)">
+    <line x1="10" y1="190" x2="210" y2="190" stroke="#1b2a33"/>
+    <path d="M10,190 L10,60 C40,120 70,160 120,180 C150,186 180,189 210,189 L210,190 Z" fill="#5b8fb9" opacity="0.25" stroke="#2e7d32" stroke-width="2.5"/>
+    <path d="M170,190 L170,188 C185,189 200,189 210,189 L210,190 Z" fill="#e4572e"/>
+    <text x="110" y="215" font-size="15" font-weight="700" text-anchor="middle" fill="#1b2a33">expon（指数分布）</text>
+    <text x="110" y="236" font-size="12" text-anchor="middle" fill="#5b6b75">0付近に集中し右に長い裾</text>
+  </g>
+  <g transform="translate(490,0)">
+    <line x1="10" y1="190" x2="210" y2="190" stroke="#1b2a33"/>
+    <path d="M10,189 C30,188 40,90 65,95 C90,100 95,160 115,150 C135,140 145,70 165,80 C185,95 195,188 210,189" fill="#5b8fb9" opacity="0.25" stroke="#2e7d32" stroke-width="2.5"/>
+    <path d="M10,190 L10,189 C16,189 22,187 27,184 L27,190 Z" fill="#e4572e"/>
+    <path d="M196,190 L196,186 C200,188 205,189 210,189 L210,190 Z" fill="#e4572e"/>
+    <text x="110" y="215" font-size="15" font-weight="700" text-anchor="middle" fill="#1b2a33">gaussian_kde</text>
+    <text x="110" y="236" font-size="12" text-anchor="middle" fill="#5b6b75">形を決めずデータに沿わせる（山が2つでも可）</text>
+  </g>
+  <g transform="translate(725,0)">
+    <line x1="10" y1="190" x2="210" y2="190" stroke="#1b2a33"/>
+    <path d="M10,189 C25,150 40,60 60,62 C90,66 130,160 210,189" fill="#5b8fb9" opacity="0.25" stroke="#2e7d32" stroke-width="2.5"/>
+    <path d="M170,190 L170,184 C185,187 200,189 210,189 L210,190 Z" fill="#e4572e"/>
+    <text x="110" y="215" font-size="15" font-weight="700" text-anchor="middle" fill="#1b2a33">beta（ベータ分布）</text>
+    <text x="110" y="236" font-size="12" text-anchor="middle" fill="#5b6b75">範囲の決まった偏った形に強い</text>
+  </g>
+</svg>

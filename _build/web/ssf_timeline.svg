@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 310" font-family="Helvetica, Arial, 'Hiragino Sans', 'Noto Sans JP', sans-serif">
+  <rect width="960" height="310" fill="#ffffff"/>
+  <text x="480" y="26" font-size="16" font-weight="700" text-anchor="middle" fill="#1b2a33">Search 3-4 の時間軸：fit StateSpaceForecast idle_cpu holdback=8d forecast_k=12d（入力 8/1〜8/21）</text>
+  <!-- x: 8/1=40 ... 8/26=920 ; 35.2 px/day -->
+  <rect x="40" y="50" width="457" height="150" fill="#e8f1f8"/>
+  <rect x="497" y="50" width="282" height="150" fill="#fff4e0"/>
+  <rect x="779" y="50" width="141" height="150" fill="#f3eaf7"/>
+  <text x="268" y="70" font-size="14" font-weight="700" text-anchor="middle" fill="#1b5e8a">学習（8/1〜8/13）</text>
+  <text x="638" y="70" font-size="14" font-weight="700" text-anchor="middle" fill="#a86400">holdback=8d（8/14〜8/21）</text>
+  <text x="850" y="70" font-size="14" font-weight="700" text-anchor="middle" fill="#6a2c8a">未来（8/22〜）</text>
+  <!-- actual series (wavy) -->
+  <path d="M40,150 q9,-40 18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0" fill="none" stroke="#1b2a33" stroke-width="1.8"/>
+  <!-- forecast band & line from 497 -->
+  <path d="M497,120 L920,105 L920,195 L497,180 Z" fill="#7b3fa0" opacity="0.12"/>
+  <path d="M497,150 q9,-40 18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0 t18,0" fill="none" stroke="#7b3fa0" stroke-width="2" stroke-dasharray="5 3"/>
+  <line x1="497" y1="45" x2="497" y2="205" stroke="#a86400" stroke-width="2"/>
+  <line x1="779" y1="45" x2="779" y2="205" stroke="#6a2c8a" stroke-width="2"/>
+  <!-- axis -->
+  <line x1="40" y1="205" x2="920" y2="205" stroke="#1b2a33"/>
+  <text x="40" y="222" font-size="12" text-anchor="middle" fill="#5b6b75">8/1</text>
+  <text x="497" y="222" font-size="12" text-anchor="middle" fill="#5b6b75">8/14</text>
+  <text x="779" y="222" font-size="12" text-anchor="middle" fill="#5b6b75">8/22</text>
+  <text x="920" y="222" font-size="12" text-anchor="middle" fill="#5b6b75">8/26</text>
+  <!-- forecast_k arrow -->
+  <line x1="497" y1="242" x2="916" y2="242" stroke="#7b3fa0" stroke-width="2"/>
+  <path d="M916,236 L926,242 L916,248 Z" fill="#7b3fa0"/>
+  <text x="706" y="262" font-size="13" text-anchor="middle" fill="#6a2c8a">forecast_k=12d：学習の終わり（8/14）から数えて12日先まで予測</text>
+  <!-- legend -->
+  <line x1="60" y1="282" x2="90" y2="282" stroke="#1b2a33" stroke-width="2"/><text x="96" y="286" font-size="12" fill="#1b2a33">実測 idle_cpu</text>
+  <line x1="200" y1="282" x2="230" y2="282" stroke="#7b3fa0" stroke-width="2" stroke-dasharray="5 3"/><text x="236" y="286" font-size="12" fill="#1b2a33">predicted(idle_cpu)</text>
+  <rect x="380" y="275" width="30" height="12" fill="#7b3fa0" opacity="0.15"/><text x="416" y="286" font-size="12" fill="#1b2a33">lower95〜upper95（conf_interval=95）</text>
+  <text x="480" y="304" font-size="12" text-anchor="middle" fill="#a86400">holdback の区間で予測と実測を比べて R2・RMSE を出す</text>
+</svg>

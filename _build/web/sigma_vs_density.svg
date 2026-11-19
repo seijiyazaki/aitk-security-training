@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 400" font-family="Helvetica, Arial, 'Hiragino Sans', 'Noto Sans JP', sans-serif">
+  <rect width="960" height="400" fill="#ffffff"/>
+  <!-- common: x scale 0..150 count -> 60..440 (left) / 540..920 (right) ; px per unit = 2.533 -->
+  <g id="left">
+    <text x="250" y="30" font-size="18" font-weight="700" text-anchor="middle" fill="#1b2a33">平均±2σ（17時台）</text>
+    <text x="250" y="52" font-size="13" text-anchor="middle" fill="#5b6b75">平均 29.2、σ 24.2 → 上限 77.5</text>
+    <line x1="60" y1="320" x2="440" y2="320" stroke="#1b2a33" stroke-width="1.5"/>
+    <!-- histogram: 22 x27 days ; 44,46,74,146 x1 -->
+    <rect x="111" y="104" width="10" height="216" fill="#5b8fb9"/>
+    <rect x="167" y="312" width="10" height="8" fill="#e4572e"/>
+    <rect x="172" y="312" width="10" height="8" fill="#e4572e"/>
+    <rect x="243" y="312" width="10" height="8" fill="#e4572e"/>
+    <rect x="425" y="312" width="10" height="8" fill="#e4572e"/>
+    <!-- bell curve normal(29.2, 24.2) -->
+    <path d="M60,318 C100,300 115,180 134,150 C153,120 172,180 200,260 C230,305 270,318 320,320" fill="none" stroke="#2e7d32" stroke-width="2.5"/>
+    <!-- bounds -->
+    <line x1="256" y1="70" x2="256" y2="320" stroke="#e4572e" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="260" y="86" font-size="12" fill="#e4572e">上限 77.5</text>
+    <rect x="256" y="70" width="184" height="250" fill="#e4572e" opacity="0.07"/>
+    <text x="116" y="96" font-size="12" text-anchor="middle" fill="#1b2a33">22件×27日</text>
+    <text x="180" y="300" font-size="12" text-anchor="middle" fill="#1b2a33">44 46</text>
+    <text x="248" y="300" font-size="12" text-anchor="middle" fill="#1b2a33">74</text>
+    <text x="430" y="300" font-size="12" text-anchor="middle" fill="#1b2a33">146</text>
+    <text x="250" y="345" font-size="12" text-anchor="middle" fill="#5b6b75">1時間あたりの失敗件数 →</text>
+    <text x="250" y="375" font-size="14" text-anchor="middle" fill="#1b2a33">外れ値と判定：<tspan font-weight="700" fill="#e4572e">146 だけ</tspan>（44・46・74 は見逃す）</text>
+  </g>
+  <line x1="480" y1="20" x2="480" y2="385" stroke="#dde3e7" stroke-width="2"/>
+  <g id="right">
+    <text x="730" y="30" font-size="18" font-weight="700" text-anchor="middle" fill="#1b2a33">DensityFunction（17時台）</text>
+    <text x="730" y="52" font-size="13" text-anchor="middle" fill="#5b6b75">22件に集中した分布 → 上限 29.4</text>
+    <line x1="540" y1="320" x2="920" y2="320" stroke="#1b2a33" stroke-width="1.5"/>
+    <rect x="591" y="104" width="10" height="216" fill="#5b8fb9"/>
+    <rect x="647" y="312" width="10" height="8" fill="#e4572e"/>
+    <rect x="652" y="312" width="10" height="8" fill="#e4572e"/>
+    <rect x="723" y="312" width="10" height="8" fill="#e4572e"/>
+    <rect x="905" y="312" width="10" height="8" fill="#e4572e"/>
+    <!-- narrow peak -->
+    <path d="M540,320 L585,319 C590,250 593,90 596,80 C599,90 602,250 608,319 L920,320" fill="none" stroke="#2e7d32" stroke-width="2.5"/>
+    <line x1="614" y1="70" x2="614" y2="320" stroke="#e4572e" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="618" y="86" font-size="12" fill="#e4572e">上限 29.4</text>
+    <rect x="614" y="70" width="306" height="250" fill="#e4572e" opacity="0.07"/>
+    <text x="596" y="96" font-size="12" text-anchor="end" fill="#1b2a33">22件×27日 </text>
+    <text x="660" y="300" font-size="12" text-anchor="middle" fill="#1b2a33">44 46</text>
+    <text x="728" y="300" font-size="12" text-anchor="middle" fill="#1b2a33">74</text>
+    <text x="910" y="300" font-size="12" text-anchor="middle" fill="#1b2a33">146</text>
+    <text x="730" y="345" font-size="12" text-anchor="middle" fill="#5b6b75">1時間あたりの失敗件数 →</text>
+    <text x="730" y="375" font-size="14" text-anchor="middle" fill="#1b2a33">外れ値と判定：<tspan font-weight="700" fill="#e4572e">44・46・74・146 の4つ</tspan></text>
+  </g>
+</svg>
