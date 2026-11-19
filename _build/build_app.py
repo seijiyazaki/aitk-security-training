@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.17"
+VERSION = "1.3.18"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -2431,7 +2431,7 @@ n2 = [
              ']\n'
              '| stats count by TargetUserName TargetServerName ProcessName src_user\n'
              '| sort - count'),
-     **N_JUL, "range_note": N_RANGE_JUL,
+     **N_JUL, "range_note": "2026/7/12 〜 7/22（日本時間）。この11日分でサブサーチが外れ値の日を選び、外側のサーチはその日（7/21）だけを数える",
      "views": [("table", "外れ値のユーザーが、外れ値の日に使った資格情報とプロセス")],
      "checks": ["Search 2-5 と同じ結果になる。いちばん多いのは malloryk の資格情報を svchost.exe が localhost に向けて使った7件。taskhostw.exe と lsass.exe が3件ずつ",
                 "時間範囲は7/12〜7/22 にしておく。サブサーチの中でふだんの平均と標準偏差を出すには、11日分が要るから。外側のサーチは、サブサーチが返した earliest と latest で7/21だけに絞られる",
