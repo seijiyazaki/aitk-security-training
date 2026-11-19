@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.12"
+VERSION = "1.3.13"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -2259,7 +2259,10 @@ n1 = [
              '<tr><td><b>Split by fields</b>（任意）</td><td><code>dvc</code></td><td>グループを分けるカテゴリの項目。グループごとに別の分布を学ぶ。数値の項目（HourOfDay など）でも、値ごとのグループとして扱われる。SPL で2つ以上にするときは <code>by "dvc,IpAddress"</code> のようにカンマでつないで引用符で囲む（空白で並べるとエラー）</td></tr>'
              '<tr><td>それ以外の項目</td><td><code>_time</code>、<code>IpAddress</code>、<code>tried_accounts</code> など</td><td>学習には使われない。結果の表にそのまま残るので、外れ値になった行が「いつ、どこから、どのアカウントで」かを調べる手がかりになる。<code>_time</code> は fit には要らないが、Chart Type の「時間」で時間軸に並べるのに使う</td></tr>'
              '</tbody></table>'
-             '<p>Search 1-3 の <code>eventstats</code> で付けている <code>comp_avg</code>（平均）と <code>comp_std</code>（標準偏差）は、<b>Smart Outlier Detection には使われません</b>。分布は AI Toolkit が unique_accounts から自分で推定するからです。Search 1-2 の単純な統計と見比べるため、また <code>sort - comp_avg</code> で並べ替えるために残してある項目です。<code>HourOfDay</code>（4時間ごとの時間帯）、<code>DayOfWeek</code>（曜日）、<code>isWeekend</code>（週末かどうか）も同じで、Split by fields に選んだときだけ使われます。</p>'
+             '<h4 style="margin:14px 0 4px;">eventstats で付けた comp_avg と comp_std はどう扱われるか</h4>'
+             '<p>GUI 1-4 の Define には Search 1-3 の SPL をそのまま貼るので、<code>eventstats</code> で付けた <code>comp_avg</code>（平均）と <code>comp_std</code>（標準偏差）も、表の列として AI Toolkit に<b>渡されます</b>。Data Preview にもこの2列が出ます。ただし、学習（fit）に使われるのは、Learn で選んだ <b>Field to analyze（unique_accounts）と Split by fields（dvc）だけ</b>です。ほかの列は学習に使われず、結果の表にそのまま残ります。</p>'
+             '<p>この環境で、Search 1-3 の表のままと、<code>fields - comp_avg comp_std HourOfDay DayOfWeek isWeekend</code> で5列を消した表とで同じ fit（dist=norm）をすると、4台とも BoundaryRanges（外れ値の境目）がまったく同じでした。AI Toolkit は、分布の形（平均やばらつきを含む）を unique_accounts から自分で推定するからです。しかも単位が違います。comp_avg と comp_std は <code>by IpAddress LogonType dvc</code>（送信元 × 端末）ごとの値ですが、Smart Outlier Detection は Split by の dvc（端末）ごとに学びます。たとえば MKRAEUSEN-D では、172.16.50.200 からの行の comp_avg は 約1.57 ですが、AI Toolkit が端末全体の11行から求めた平均は 約1.27 です（<code>| summary</code> の mean）。</p>'
+             '<p>では、なぜ付けてあるのか。資料の SPL は Technique #1（Search 1-2）の統計の計算を引き継いでいて、<code>sort - comp_avg</code> で平均の大きい端末から並べるのと、Search 1-2 の上限（平均＋標準偏差×2）と見比べるのに使います。<code>HourOfDay</code>（4時間ごとの時間帯）、<code>DayOfWeek</code>（曜日）、<code>isWeekend</code>（週末かどうか）は、Split by fields に選んだときだけ学習に使われる、分け方の候補です。ほかのデータで作るときに、eventstats で平均や標準偏差を付ける必要はありません。</p>'
              '<h4 style="margin:14px 0 4px;">ほかのデータで作るときの手順</h4>'
              '<table class="aitk-table"><thead><tr><th style="width:22%;">決めること</th><th>やること</th><th style="width:30%;">この Lab では</th></tr></thead><tbody>'
              '<tr><td>1. 何を1行にするか</td><td><code>bin _time span=…</code> と <code>stats … by _time &lt;見たい単位&gt;</code> で、「一定の時間 × 見たい単位」を1行にする。生のイベントのままだと、1件ずつの値の分布になってしまう</td><td>2分間 × 送信元 IP × 端末</td></tr>'
