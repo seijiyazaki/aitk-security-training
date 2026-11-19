@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.11"
+VERSION = "1.3.12"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -2251,6 +2251,23 @@ n1 = [
      "refs": ["n60_0.png"],
      "checks": ["全部で40行。7/20 07:34 〜 7/21 11:04 の2分間のうち、失敗のあったものだけ",
                 "端末は4台（winserver 16行、MKRAEUSEN-D 11行、abungstein-l 8行、rschlitzer-d 5行）。どれも行が少ないので、分布の推定は粗くなる"]},
+    text_row('<div class="aitk-step-head"><span class="aitk-tag aitk-tag-info">解説</span><h2>Smart Outlier Detection に渡すデータの作り方</h2></div>'
+             '<p>Smart Outlier Detection が裏で実行するのは <code>| fit DensityFunction &lt;Field to analyze&gt; by &lt;Split by fields&gt;</code> です。このコマンドは、渡された表の<b>1行を1回の観測</b>として、分析する項目の値の分布を学び、分布の端に入った行を外れ値にします。そのため、渡すデータは「何を1行にするか」と「どの数値を見るか」で決まります。</p>'
+             '<h4 style="margin:14px 0 4px;">AI Toolkit が実際に使う項目</h4>'
+             '<table class="aitk-table"><thead><tr><th style="width:22%;">画面の欄</th><th style="width:26%;">Search 1-3 の項目</th><th>条件（この環境の AI Toolkit 6.1 で確かめた結果）</th></tr></thead><tbody>'
+             '<tr><td><b>Field to analyze</b>（必須）</td><td><code>unique_accounts</code></td><td><b>数値の項目を1つだけ</b>。文字列の項目（例：tried_accounts）を選ぶと「Feature … is not a numeric type」で失敗する。SPL で2つ並べるとエラーになる。値が空の行は判定されずにそのまま残る</td></tr>'
+             '<tr><td><b>Split by fields</b>（任意）</td><td><code>dvc</code></td><td>グループを分けるカテゴリの項目。グループごとに別の分布を学ぶ。数値の項目（HourOfDay など）でも、値ごとのグループとして扱われる。SPL で2つ以上にするときは <code>by "dvc,IpAddress"</code> のようにカンマでつないで引用符で囲む（空白で並べるとエラー）</td></tr>'
+             '<tr><td>それ以外の項目</td><td><code>_time</code>、<code>IpAddress</code>、<code>tried_accounts</code> など</td><td>学習には使われない。結果の表にそのまま残るので、外れ値になった行が「いつ、どこから、どのアカウントで」かを調べる手がかりになる。<code>_time</code> は fit には要らないが、Chart Type の「時間」で時間軸に並べるのに使う</td></tr>'
+             '</tbody></table>'
+             '<p>Search 1-3 の <code>eventstats</code> で付けている <code>comp_avg</code>（平均）と <code>comp_std</code>（標準偏差）は、<b>Smart Outlier Detection には使われません</b>。分布は AI Toolkit が unique_accounts から自分で推定するからです。Search 1-2 の単純な統計と見比べるため、また <code>sort - comp_avg</code> で並べ替えるために残してある項目です。<code>HourOfDay</code>（4時間ごとの時間帯）、<code>DayOfWeek</code>（曜日）、<code>isWeekend</code>（週末かどうか）も同じで、Split by fields に選んだときだけ使われます。</p>'
+             '<h4 style="margin:14px 0 4px;">ほかのデータで作るときの手順</h4>'
+             '<table class="aitk-table"><thead><tr><th style="width:22%;">決めること</th><th>やること</th><th style="width:30%;">この Lab では</th></tr></thead><tbody>'
+             '<tr><td>1. 何を1行にするか</td><td><code>bin _time span=…</code> と <code>stats … by _time &lt;見たい単位&gt;</code> で、「一定の時間 × 見たい単位」を1行にする。生のイベントのままだと、1件ずつの値の分布になってしまう</td><td>2分間 × 送信元 IP × 端末</td></tr>'
+             '<tr><td>2. どの数値を見るか</td><td>攻撃で増える数を <code>stats</code> で作る。<code>count</code>（回数）、<code>dc(…)</code>（種類の数）、<code>sum(bytes)</code>（量）など。名前は英数字と _ にする。結果の列名は <code>IsOutlier(&lt;名前&gt;)</code> になり、<code>where \'IsOutlier(unique_accounts)\'=1</code> のようにシングルクォートで囲んで使う</td><td><code>dc(TargetUserName) as unique_accounts</code>（試したアカウントの種類）</td></tr>'
+             '<tr><td>3. 何ごとに分けるか</td><td>ふだんの値が違うものを Split by fields にする。端末、ユーザー、時間帯（<code>eval HourOfDay=strftime(_time,"%H")</code>）、平日か週末か、など。分けるほどグループごとの行は減る</td><td><code>dvc</code>（端末ごと）</td></tr>'
+             '<tr><td>4. 行は足りているか</td><td>グループごとの行が少ないと「Too few training points」の注意が出て、結果が安定しない。期間を長くするか、分け方を粗くする。グループごとの行数は <code>| stats count by &lt;Split by fields&gt;</code> か、保存したモデルの <code>| summary</code> の cardinality 列で見られる</td><td>端末ごとに5〜16行しかない（注意が出る）</td></tr>'
+             '<tr><td>5. 0 の行をどうするか</td><td><code>stats</code> は、イベントのなかった時間の行を作らない。「何も起きなかった2分間」も学ばせたいときは、<code>timechart</code> や <code>fillnull value=0</code> で 0 の行を作る</td><td>失敗のあった2分間だけ（0 の行は、アカウント名が空の失敗）</td></tr>'
+             '</tbody></table>'),
     {"id": "n1-4", "tag": "GUI 1-4", "title": "Smart Outlier Detection で外れ値を探す",
      "body": ["AI Toolkit アプリの <b>Experiments</b> で <b>Smart Outlier Detection</b> を選び、Experiment を作ります。"],
      "extra_html": exp_steps([
@@ -2264,7 +2281,7 @@ n1 = [
      "checks": ["資料の画面では Total Outliers が 2（winserver の2点）",
                 "同じ設定でも、<b>Detect Outliers を押すたびに数が変わる</b>。Distribution type が Auto だと、端末ごとに正規、指数、ガウス KDE、ベータのどれを当てはめるかが実行のたびに変わるため。端末ごとの行が5〜16行しかなく、どの分布もほとんど同じくらいよく当てはまるので、選ばれる分布が揺れる",
                 "この検証環境で同じ設定を24回実行すると、外れ値は0〜5点だった。1点（rschlitzer-d の unique_accounts=0）と3点になることが多く、5点は1回だけ。資料と同じ winserver の2点（7/21 04:48 の unique_accounts=2 と、10:06 の 0）が出た回もあった。画面の数が1でも2でも、設定の誤りではない",
-                "Search 1-2 で見つかった 172.16.50.200 の4アカウントは、DensityFunction では外れ値にならない。MKRAEUSEN-D の分布の中に収まっているため"]},
+                "しきい値 0.0017 では、Search 1-2 で見つかった 172.16.50.200 の4アカウントは、DensityFunction で外れ値にならない。MKRAEUSEN-D の分布の中に収まっているため。既定のしきい値 0.01 にすると、MKRAEUSEN-D に Normal が選ばれた回だけ外れ値になる（Normal の上限が約3.75になるため）"]},
     text_row('<div class="aitk-step-head"><span class="aitk-tag aitk-tag-gui" style="background:#7b3fa0;">GUI</span><h2>GUI 1-4 の結果画面の読み方</h2></div>'
              '<p>Learn 画面で Detect Outliers を押すと、右側に結果が出ます。端末（dvc）ごとに「ふだんの unique_accounts の分布」を描き、そこから外れた点を示す画面です。</p>'
              + img("n1_gui_sod_result.png", "aitk-shot aitk-fig-wide") +
@@ -2277,7 +2294,7 @@ n1 = [
              '<tr><td>棒（右軸 count(unique_accounts)）</td><td>その値の2分間が何回あったか。端末ごとに色が違い、半透明で重なっている。1 の位置が高いのは、どの端末もほとんどの2分間が「1アカウントだけ失敗」だから（MKRAEUSEN-D 8回、abungstein-l 6回、rschlitzer-d 4回が重なっている）。4 の位置の小さな棒は MKRAEUSEN-D の 7/21 06:08、Search 1-2 で見つけたスプレー</td></tr>'
              '<tr><td>線（左軸 ProbabilityDensity）</td><td>AI Toolkit が推定した分布の形。高いところほど「ふつうに起きる値」。青い線（rschlitzer-d）は 0 から 1 に向かって上がり、1 で鋭く尖る。5回のうち4回が 1 なので「この端末はいつも 1」という分布になっている。左軸の 4.8T（T は兆）は、データが少なく値がほぼ1つしかないために分布が極端に尖った、というだけで、確率ではない。ほかの2台の線は桁が小さく、横軸に張り付いて見える</td></tr>'
              '<tr><td>横軸の上の点（show outliers）</td><td>外れ値になった行。左下の 0 の点が、7/21 10:06 の rschlitzer-d への、アカウント名が空の失敗。「いつも 1 の端末で 0 が出た」ので外れ値になった</td></tr>'
-             '<tr><td>塗りの範囲（show outlier area）</td><td>「ここに入ったら外れ値」とする確率の低い範囲（この画面では横軸の近くに細く出るだけで見えにくい）。MKRAEUSEN-D は値が 0〜4 にばらついているので分布が広く、4 は外れ値の範囲に入らない。どの分布で試しても、スプレーの 4 は外れ値にならなかった</td></tr>'
+             '<tr><td>塗りの範囲（show outlier area）</td><td>「ここに入ったら外れ値」とする確率の低い範囲（この画面では横軸の近くに細く出るだけで見えにくい）。MKRAEUSEN-D は値が 0〜4 にばらついているので分布が広く、4 は外れ値の範囲に入らない。しきい値 0.0017 では、どの分布で試してもスプレーの 4 は外れ値にならなかった</td></tr>'
              '<tr><td>左の Outlier tolerance threshold と、上の Outlier tolerance threshold</td><td>左の欄は、Detect Outliers で<b>学習し直す</b>（fit）ときの値。上の Evaluate の欄は、学習済みのモデルで<b>判定だけやり直す</b>（「適用」、apply）ときの値。両方とも 0.0017 にしておく</td></tr>'
              '<tr><td>左の黄色い警告<br/><code>Too few training points in some groups</code></td><td>端末ごとの2分間が5〜16回しかない、という注意。下の数が揺れる理由そのもの</td></tr>'
              '</tbody></table>'
@@ -2301,6 +2318,26 @@ n1 = [
              '<li>GUI で結果を固定したいときは、Distribution type を Auto 以外にする。ただしこのデータでは 0 か 5 になり、資料の 2 にはならない</li>'
              '<li>SPL なら、次の Search 1-5 に <code>random_state=7</code> を足すと毎回3点（winserver の2点と rschlitzer-d の1点）に固定できる。GUI の画面には random_state の欄がない</li></ul>'
              '<p class="aitk-note">端末ごとの2分間が5〜16回では、分布で外れ値を決めるには少なすぎます。どの分布を選ぶかで答えが変わるのはそのためです。端末ごとの行が数十を超える期間で学習させると、Auto でも結果は安定してきます。人が決めた「4アカウント以上」で判定する Search 1-2 のほうが、この Lab ではスプレーをはっきり見つけられます。</p>'),
+    text_row('<div class="aitk-step-head"><span class="aitk-tag aitk-tag-gui" style="background:#7b3fa0;">GUI</span><h2>分割で見る：どの端末の、どの行が外れ値か</h2></div>'
+             '<p>結果画面の右上の Chart Mode で <b>分割</b> を押すと、グループ欄で選んだ端末ごとに1枚ずつグラフが出ます。重ならないので、端末ごとの分布と外れ値の位置が読み取れます。グループ欄で <b>winserver</b> を足すと、4台すべてを並べられます。</p>'
+             + img("n1_split_view.svg", "aitk-fig aitk-fig-wide") +
+             '<p class="aitk-note">画面ではなく、同じデータ（7/12〜7/22、2分ごと）から描いた図です。実際の画面には、棒に加えて推定した分布の線と、外れ値の範囲の塗りが出ます。</p>'
+             '<table class="aitk-table"><thead><tr><th style="width:16%;">端末</th><th>分割した画面で見えること</th></tr></thead><tbody>'
+             '<tr><td>MKRAEUSEN-D</td><td>1 に8回の高い棒、0・2・4 に1回ずつ。4 は Search 1-2 で見つけたスプレー。値が 0〜4 にばらついているので分布の幅が広く、4 は外れ値の範囲に入らない。しきい値 0.0017 では、どの分布で試しても外れ値にならなかった。既定の 0.01 にすると、Normal が選ばれた回は上限が約3.75になり、4 も外れ値になる</td></tr>'
+             '<tr><td>abungstein-l</td><td>1 に6回、0 と 2 に1回ずつ。Beta が選ばれた回は 0 と 2 が外れ値になり、ほかの分布では外れ値なし</td></tr>'
+             '<tr><td>rschlitzer-d</td><td>1 に4回、0 に1回。分布が 1 に集中するので、0 が外れ値になりやすい。上の画面（Total Outliers 1）の1点はここ</td></tr>'
+             '<tr><td>winserver</td><td>1 に14回、0 と 2 に1回ずつ。資料の画面の2点はここで、選ばれた分布によって外れ値になったりならなかったりする</td></tr>'
+             '</tbody></table>'
+             '<h4 style="margin:14px 0 4px;">外れ値の行を特定する</h4>'
+             '<p>グラフの点は「どの値か」しか教えてくれません。<b>いつ、どこからの</b>失敗かは、結果画面の <b>出力</b> タブの表で <code>IsOutlier(unique_accounts)</code> が 1 の行を見ます。Chart Type を <b>時間</b> にすると、外れ値が時間軸のどこにあるかも分かります。Search 1-5 の表も同じ行を出します。しきい値 0.0017 で外れ値になりうる行は、この環境では次の5つでした。</p>'
+             '<table class="aitk-table"><thead><tr><th>日時（日本時間）</th><th>送信元</th><th>端末</th><th>unique_accounts</th><th>試したアカウント</th><th>中身</th></tr></thead><tbody>'
+             '<tr><td>7/21 10:06</td><td>172.16.50.206</td><td>rschlitzer-d</td><td>0</td><td>（空）</td><td>アカウント名の記録されていない失敗</td></tr>'
+             '<tr><td>7/21 10:06</td><td>172.16.50.206</td><td>winserver</td><td>0</td><td>（空）</td><td>同じ送信元から同じ時刻に、別の端末へ</td></tr>'
+             '<tr><td>7/21 10:08</td><td>172.16.50.206</td><td>abungstein-l</td><td>0</td><td>（空）</td><td>その2分後に、さらに別の端末へ</td></tr>'
+             '<tr><td>7/21 04:48</td><td>172.16.48.255</td><td>winserver</td><td>2</td><td>bstoll、bstoll@froth.ly</td><td>同じ人を2つの書き方で試しただけ</td></tr>'
+             '<tr><td>7/20 07:36</td><td>172.16.50.201</td><td>abungstein-l</td><td>2</td><td>abungstein、abungstein@froth.ly</td><td>同じく、ユーザー名とメール形式の2通り</td></tr>'
+             '</tbody></table>'
+             '<p>どれも、端末ごとの「ふつう」から見て珍しい値ですが、スプレーそのものではありません。一方、スプレーの 4（MKRAEUSEN-D）は、しきい値 0.0017 では外れ値になりません。分布だけで判断すると、<b>珍しいもの</b>は見つかっても、<b>危ないもの</b>が見つかるとは限らない、という例です。一方で、外れ値の 0 を手がかりに 172.16.50.206 を並べてみると、7/21 09:35〜09:47 に fatjeta で4台すべてに失敗し、10:07〜10:08 にはアカウント名なしで、やはり4台すべてに失敗しています（MKRAEUSEN-D への 0 は外れ値にならなかった行です）。こちらは調べる価値があります。</p>'),
     {"id": "n1-5", "tag": "Search 1-5", "title": "GUI 1-4 と同じことを SPL でやる",
      "body": ["Smart Outlier Detection が裏で実行する <code>fit DensityFunction</code> を、そのまま SPL で書いたものです。<code>into</code> を付けていないので、モデルは保存しません。"],
      "spl": N1_PREP + "\n| fit DensityFunction unique_accounts by dvc dist=auto threshold=0.0017\n| where 'IsOutlier(unique_accounts)'=1\n| table _time IpAddress dvc unique_accounts tried_accounts",
