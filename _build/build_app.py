@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.8"
+VERSION = "1.3.9"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -1133,7 +1133,7 @@ EXPLAIN.update({
         ("| summary example_malware", "RandomForestClassifier のモデルを読み込み、各入力がどれだけ判定に効いたか（feature importance、合計1）を出す"),
     ],
     "r2-8": [
-        ("| inputlookup firewall_traffic.csv | head 50000 | apply example_malware", "資料 P149 と同じ。学習し直さずに、保存したモデルで5万行すべてを判定する"),
+        ("| inputlookup firewall_traffic.csv | head 50000 | apply example_malware", "資料と同じ。学習し直さずに、保存したモデルで5万行すべてを判定する"),
         (f"| stats count by used_by_malware {RK_PRED}", "実際と予測の組み合わせで数える"),
     ],
     "r3-1": [
@@ -1163,7 +1163,7 @@ r1 = [
     {"id": "r1-2", "tag": "GUI 1-2", "title": "Showcase の画面で、ログイン数に MAD を当てる（倍率を変えて試す）",
      "body": ["Search 1-1 の説明のとおり Showcase の <b>Detect Outliers in Number of Logins (vs. Predicted Value)</b> を開くと、Detect Numeric Outliers の画面になります。"
               "開いた直後は、predict でログイン数の予想値を作り、予想との差で外れ値を探す既定の設定で自動的に実行されます（外れ値 61）。",
-              "資料（P100-103）では、ここで設定を変えて、ログイン数そのものの外れ値を探します。画面で次のとおりに変えてください。"],
+              "資料では、ここで設定を変えて、ログイン数そのものの外れ値を探します。画面で次のとおりに変えてください。"],
      "extra_html": ('<table class="aitk-table"><thead><tr><th style="width:34%;">画面の項目</th><th>設定</th></tr></thead><tbody>'
                     '<tr><td><b>Enter a search</b>（入力欄）</td><td><code>| inputlookup logins.csv</code> より後ろを消し、右の虫眼鏡で検索し直す</td></tr>'
                     '<tr><td><b>Field to analyze</b></td><td>logins</td></tr>'
@@ -1171,12 +1171,12 @@ r1 = [
                     '<tr><td><b>Threshold multiplier</b></td><td>9</td></tr>'
                     '<tr><td><b>Sliding window</b></td><td>空にする（全期間で1つの範囲を作る）</td></tr>'
                     '</tbody></table>'
-                    '<p>設定したら <b>Detect Outliers</b> を押します。続けて <b>Threshold multiplier</b> だけを 7.7、6.5、5 と変えて、そのたびに Detect Outliers を押し、グラフ右側の外れ値の数を見ます（資料 P103-105）。</p>'
+                    '<p>設定したら <b>Detect Outliers</b> を押します。続けて <b>Threshold multiplier</b> だけを 7.7、6.5、5 と変えて、そのたびに Detect Outliers を押し、グラフ右側の外れ値の数を見ます。</p>'
                     '<table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:9%;">倍率</th><th style="width:15%;">範囲（上限）</th><th style="width:10%;">外れ値</th><th>何が外れ値になるか</th></tr></thead><tbody>'
                     '<tr><td>9</td><td>−361〜557</td><td>0</td><td>どの山も上限に届かない</td></tr>'
-                    '<tr><td>7.7</td><td>−295〜491</td><td>4</td><td>期間でいちばん高い山（11/3 03:00 の 493、12/1 01:00〜03:00 の 508〜540）。資料 P105 が「ちょうどよい」とした値</td></tr>'
+                    '<tr><td>7.7</td><td>−295〜491</td><td>4</td><td>期間でいちばん高い山（11/3 03:00 の 493、12/1 01:00〜03:00 の 508〜540）。資料が「ちょうどよい」とした値</td></tr>'
                     '<tr><td>6.5</td><td>−233〜430</td><td>9</td><td>高めの山（11/17、11/24、12/1 など）</td></tr>'
-                    '<tr><td>5</td><td>−157〜353</td><td>57</td><td>ふだんの山（日本時間の0〜6時）が、ほぼ毎日外れ値になる。資料 P104 の「多すぎ」</td></tr>'
+                    '<tr><td>5</td><td>−157〜353</td><td>57</td><td>ふだんの山（日本時間の0〜6時）が、ほぼ毎日外れ値になる。資料の「多すぎ」</td></tr>'
                     '</tbody></table>'
                     '<h4 style="margin:14px 0 4px;">なぜ結局、倍率は 9 のままにするのか</h4>'
                     '<ol>'
@@ -1184,7 +1184,7 @@ r1 = [
                     '<li><b>原因は倍率ではなく、範囲が全期間で1本しかないこと</b>：ログインの多い時間帯（日本時間の0〜6時）の値も、少ない時間帯（15〜21時）の値も、同じ上限で判定しています。ふだん 80 しかない時間帯に 400 になっても、上限を超えない限り見つかりません</li>'
                     '<li><b>だから倍率は Showcase の既定の 9 に戻し、見る対象のほうを変える</b>：predict で「その時刻ならこれくらい」という予想を作り、予想とのずれ（residual）に同じ MAD×9 を当てます。時間帯の波は予想のほうに入るので、倍率を細かく合わせ込まなくても、その時刻としておかしい点が残ります（Search 1-3、GUI 1-4）</li>'
                     '</ol>'
-                    '<p>運用するときは、どの設定でも、グラフの下の <b>Open in Search</b> で SPL を開いて保存済みサーチにするか、<b>Schedule Alert</b> でアラートにできます。この画面は fit を使わないので、保存するモデルはありません（資料 P106-107）。演習2では、モデルを保存して Publish してから使う点が違います。</p>'
+                    '<p>運用するときは、どの設定でも、グラフの下の <b>Open in Search</b> で SPL を開いて保存済みサーチにするか、<b>Schedule Alert</b> でアラートにできます。この画面は fit を使わないので、保存するモデルはありません。演習2では、モデルを保存して Publish してから使う点が違います。</p>'
                     '<p class="aitk-note">画面の設定に合わせて、裏で SPL が生成されます。<b>Show SPL</b> を押すと、生成された SPL を見られます。</p>'),
      "refs": ["r100_0.png", "r103_0.png", "r104_0.png", "r105_0.png", "r106_0.png"],
      "checks": ["倍率 9 で外れ値は <b>0</b>。帯（ふだんの範囲）は −361〜557 で、どの山も上限に届かない",
@@ -1229,7 +1229,7 @@ r1 = [
                     '</tbody></table>'
                     '<p class="aitk-note">画面の設定に合わせて、裏で SPL が生成されます。<b>Show SPL</b> を押すと、生成された SPL（streamstats で中央値と MAD を求める部分）を見られます。</p>'),
      "refs": ["r99_0.png"],
-     "checks": ["外れ値は <b>61</b>（グラフ右側）。資料 P99 と同じ数",
+     "checks": ["外れ値は <b>61</b>（グラフ右側）。資料と同じ数",
                 "61のうち40は 11/8〜11/10 に固まっている。直前の3日間（Sliding window の72点）は residual が 0 の期間なので MAD もほぼ 0 になり、少しのずれでも外れ値になるため。予想が育つ前の期間は、判定から外して考える",
                 "12/1 の 00:00、03:00、05:00、06:00 の4点が外れ値になる。どれも予想より 57〜81 多かった点で、GUI 1-2 の倍率 9 では1つも出なかった。11/3 03:00 は予想が育つ前の期間なので、こちらでは出ない",
                 "グラフの縦軸は logins ではなく residual。何に対して外れ値を探しているかを意識する"]},
@@ -1245,26 +1245,26 @@ R1_INTRO = ('<div class="aitk-hero-text"><span class="aitk-kicker">AITK Security
 
 r2 = [
     {"id": "r2-1", "tag": "GUI 2-1", "title": "Showcase の Predict the Presence of Malware を開く",
-     "body": ["AI Toolkit アプリのメニューの <b>Support → Showcase</b> を開き、<b>Industry → Security</b> を選んで、<b>Predict the Presence of Malware</b> をクリックします（資料 P129-132）。",
-              "Predict Categorical Fields の画面が、設定が入った状態で開きます（資料 P133）。画面の各項目がどう設定されているかを確かめます。"],
+     "body": ["AI Toolkit アプリのメニューの <b>Support → Showcase</b> を開き、<b>Industry → Security</b> を選んで、<b>Predict the Presence of Malware</b> をクリックします。",
+              "Predict Categorical Fields の画面が、設定が入った状態で開きます。画面の各項目がどう設定されているかを確かめます。"],
      "extra_html": ('<table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:28%;">画面の項目</th><th style="width:30%;">Showcase の設定</th><th>意味</th></tr></thead><tbody>'
                     '<tr><td><b>Enter a search</b></td><td><code>| inputlookup firewall_traffic.csv | head 50000</code></td><td>ファイアウォールの通信記録の先頭5万行を使う</td></tr>'
                     '<tr><td><b>Preprocessing Steps</b></td><td>なし</td><td>前処理（StandardScaler など）は入れていない</td></tr>'
                     '<tr><td><b>Algorithm</b></td><td>LogisticRegression</td><td>yes／no の確率を線形のモデルで求める。Predict Categorical Fields の既定</td></tr>'
                     '<tr><td><b>Field to predict</b></td><td>used_by_malware</td><td>当てたい項目。その通信が過去にマルウェアに使われたか（yes／no）</td></tr>'
-                    '<tr><td><b>Fields to use for predicting</b></td><td>bytes_received、bytes_sent、dest_port、has_known_vulnerability、packets_received、packets_sent、src_port（7項目）</td><td>予測の手がかりにする項目。資料 P135 で、この選び方を控えておく</td></tr>'
+                    '<tr><td><b>Fields to use for predicting</b></td><td>bytes_received、bytes_sent、dest_port、has_known_vulnerability、packets_received、packets_sent、src_port（7項目）</td><td>予測の手がかりにする項目。資料で、この選び方を控えておく</td></tr>'
                     '<tr><td><b>Split for training / test</b></td><td>70 / 30</td><td>70%で学習し、残りの30%で答え合わせをする</td></tr>'
                     '<tr><td><b>Fit Intercept</b></td><td>estimate the intercept にチェック</td><td>切片も推定する（LogisticRegression の設定）</td></tr>'
                     '<tr><td><b>Save the model as</b></td><td>example_malware</td><td>学習したモデルの保存名</td></tr>'
                     '</tbody></table>'
                     '<p>画面を下にたどると、<b>Prediction Results</b>（実際の used_by_malware と予測 predicted(used_by_malware) を並べた表）と、'
-                    '<b>Precision／Recall／Accuracy／F1</b>、<b>Classification Results（Confusion Matrix）</b>が出ます。資料 P136 の画面では Precision 0.82、Recall 0.81、Accuracy 0.81、F1 0.81 です。'
+                    '<b>Precision／Recall／Accuracy／F1</b>、<b>Classification Results（Confusion Matrix）</b>が出ます。資料の画面では Precision 0.82、Recall 0.81、Accuracy 0.81、F1 0.81 です。'
                     '70/30 の分け方は実行ごとにランダムなので、数字は少し変わります。</p>'
-                    '<p>資料では、この結果はいまひとつだとして、同じデータで自分の Experiment を作り直し、アルゴリズムを変えて改善していきます（資料 P136-145）。'
+                    '<p>資料では、この結果はいまひとつだとして、同じデータで自分の Experiment を作り直し、アルゴリズムを変えて改善していきます。'
                     'この演習では、その流れを Search 2-2 以降で SPL を使って追います。</p>'
                     '<p class="aitk-note">Showcase の画面で Fit Model を押すと、AI Toolkit アプリの自分の領域に example_malware というモデルが保存されます。'
                     'Search 2-3 以降で作る example_malware は、このアプリ（AITK Security Training）の中に別に保存されるので、ぶつかりません。'
-                    'また Showcase は src_port を使いますが、資料 P139 で作り直す Experiment は src_port の代わりに dst_ip を選んでいるので、Search 2-3 以降もそちらに合わせています。</p>'),
+                    'また Showcase は src_port を使いますが、資料で作り直す Experiment は src_port の代わりに dst_ip を選んでいるので、Search 2-3 以降もそちらに合わせています。</p>'),
      "refs": ["r133_0.png", "r135_0.png", "r136_0.png"],
      "checks": ["画面の設定が上の表と同じになっている",
                 "Precision、Recall、Accuracy、F1 が 0.8 前後",
@@ -1284,7 +1284,7 @@ r2 = [
                 "dst_ip と dest_port は値の種類が100を超える。これが次の Search 2-3 で効いてくる"]},
     {"id": "r2-3", "tag": "Search 2-3", "title": "LogisticRegression で学習する（70%）",
      "body": ["Predict Categorical Fields と同じ処理を SPL で行います。データを 70% と 30% に分け、70% で学習してモデル <code>example_malware</code> を保存します。",
-              "入力に使うのは、資料 P150 の7項目（バイト数、ポート、宛先、パケット数、脆弱性の有無）です。"
+              "入力に使うのは、資料の7項目（バイト数、ポート、宛先、パケット数、脆弱性の有無）です。"
               "文字のフィールドは、値ごとに 0／1 の列に分けてから学習に使われます（<b>One-hot エンコーディング</b>）。"],
      "spl": RK_TRAIN + f"| fit LogisticRegression fit_intercept=true used_by_malware from {RK_FEATS} into example_malware",
      **RK_ALL, "range_note": RK_RANGE_FW,
@@ -1331,7 +1331,7 @@ r2 = [
      "spl": RK_TEST, **RK_ALL, "range_note": RK_RANGE_FW,
      "views": RK_SCORE_VIEWS,
      "refs": ["r140_0.png"],
-     "checks": ["Precision・Recall・F1 は 0.79 前後、Accuracy も 0.79 前後。資料 P140（0.82／0.81）と近い値",
+     "checks": ["Precision・Recall・F1 は 0.79 前後、Accuracy も 0.79 前後。資料（0.82／0.81）と近い値",
                 "混同行列が上の表と同じ 4643／1300／1895／7147 になっている",
                 "見逃し（実際 1 なのに予測 0）が 1895 件、誤検知（実際 0 なのに予測 1）が 1300 件"]},
     text_row('<div class="aitk-step-head"><span class="aitk-tag aitk-tag-info">解説</span><h2>アルゴリズムを変えてみる</h2></div>'
@@ -1345,7 +1345,7 @@ r2 = [
              '<tr><td>DecisionTreeClassifier</td><td>0.99</td><td>0.99</td><td>0.99</td><td>しきい値の組み合わせで分けられるデータに強い</td></tr>'
              '<tr><td><b>RandomForestClassifier</b></td><td><b>0.99</b></td><td><b>0.99</b></td><td><b>0.99</b></td><td>資料で採用。決定木の多数決なので、1本の木より安定する</td></tr>'
              '</tbody></table>'
-             + ul(["0.99 でも 1.00 ではないことが大事です。1.00 になったら、学習と評価に同じデータを使っている（過学習を見逃している）か、データの幅が足りないことを疑います（資料 P151）",
+             + ul(["0.99 でも 1.00 ではないことが大事です。1.00 になったら、学習と評価に同じデータを使っている（過学習を見逃している）か、データの幅が足りないことを疑います",
                    "ほかのアルゴリズムを試すには、Search 2-3 を Search で開き、<code>fit</code> の後ろのアルゴリズム名を変えて実行し、続けて Search 2-4 を実行します"]) +
              '<p class="aitk-note">次の Search 2-5 で、モデルを RandomForestClassifier で作り直します。</p>'),
     {"id": "r2-5", "tag": "Search 2-5", "title": "RandomForestClassifier で学習し直す",
@@ -1383,7 +1383,7 @@ r2 = [
              '</tbody></table>'
              '<h4 style="margin:14px 0 4px;">apply は通常のサーチから実行する</h4>'
              '<p>AI Toolkit の画面に、apply を実行するボタンはありません。運用で使うときは、<b>通常のサーチの中に <code>| apply モデル名</code> を書きます</b>。'
-             'AI Toolkit の Search タブでも、Search &amp; Reporting など他のアプリのサーチでも同じです（資料 P148-149）。そのため、次のような場所にそのまま置けます。</p>'
+             'AI Toolkit の Search タブでも、Search &amp; Reporting など他のアプリのサーチでも同じです。そのため、次のような場所にそのまま置けます。</p>'
              + ul(["保存済みサーチやアラート（定期的に新しいデータを判定し、予測が yes なら通知する）",
                    "ダッシュボードのパネル",
                    "Enterprise Security の検知（演習3の Search 3-2 と Detection）"]) +
@@ -1391,7 +1391,7 @@ r2 = [
              'Smart Outlier Detection の Create Alert のように、apply を使う定期サーチを画面が作ってくれる機能もありますが、作られるのは通常の保存済みサーチです。'
              'なお Schedule Training は apply ではなく、fit（学習のし直し）を定期的に実行する機能です。</p>'
              '<h4 style="margin:14px 0 4px;">apply を使うときの注意</h4>'
-             + ul(["<b>前処理をそろえる</b>：apply の前の行（データの絞り込みや項目の作り方）は、学習したときと同じにする。項目の名前や作り方が違うと、正しく判定できない（資料 P80）",
+             + ul(["<b>前処理をそろえる</b>：apply の前の行（データの絞り込みや項目の作り方）は、学習したときと同じにする。項目の名前や作り方が違うと、正しく判定できない",
                    "<b>モデルが見える場所で動かす</b>：モデルは、作ったアプリの作った人の領域に保存される。ほかのアプリやユーザーのサーチから apply するには、共有範囲を広げる必要がある（演習3の「モデルを全アプリに共有する」）",
                    "<b>同じ名前で上書きされる</b>：Search 2-5 は Search 2-3 と同じ example_malware に保存するので、以後の apply は RandomForestClassifier のモデルを使う。保存に失敗したとき（上の n_estimators=300 の例）は、前のモデルが残ったままになる"]) +
              '<p class="aitk-note">次の Search 2-6 で、このモデルを30%のデータに apply して答え合わせをします。</p>'),
@@ -1410,7 +1410,7 @@ r2 = [
                 "has_known_vulnerability は <code>=no</code> と <code>=yes</code> の2つに分かれている。これが One-hot エンコーディングの結果",
                 "dest_port と dst_ip は出てこない。Search 2-3 の注意のとおり学習から外されたから"]},
     {"id": "r2-8", "tag": "Search 2-8", "title": "保存したモデルを apply する",
-     "body": ["資料 P148-149 のとおり、モデルを使う方法は、演習1のような SPL だけの方法と違い、モデルを保存して <code>| apply</code> で呼び出します。"
+     "body": ["資料のとおり、モデルを使う方法は、演習1のような SPL だけの方法と違い、モデルを保存して <code>| apply</code> で呼び出します。"
               "学習し直さずに、新しいデータへ同じ判定を当てられます。"],
      "spl": f"| inputlookup firewall_traffic.csv\n| head 50000\n| apply example_malware\n| stats count by used_by_malware {RK_PRED}",
      **RK_ALL, "range_note": RK_RANGE_FW,
@@ -1452,7 +1452,7 @@ r3 = [
      "checks": ["5万行が返り、predicted(used_by_malware) の列がある",
                 "「Model does not exist」などのエラーが出たら、演習2の Search 2-5 を実行してから、もう一度実行する"]},
     text_row('<div class="aitk-step-head"><span class="aitk-tag aitk-tag-gui" style="background:#7b3fa0;">GUI</span><h2>モデルを全アプリに共有する</h2></div>'
-             '<p>資料 P158 では AI Toolkit の Models 画面から共有していますが、そこに出るのは AI Toolkit アプリから見えるモデルだけです。'
+             '<p>資料では AI Toolkit の Models 画面から共有していますが、そこに出るのは AI Toolkit アプリから見えるモデルだけです。'
              'このアプリで作ったモデルは、Splunk の設定画面から共有します。</p>'
              '<table class="aitk-table"><tbody>'
              '<tr><td><b>開く</b></td><td><b>Settings → Lookups → Lookup table files</b> を開き、App を <b>AITK Security Training</b>、Owner を自分にして '
@@ -1475,7 +1475,7 @@ r3 = [
      "checks": ["10行出る。いちばん上は 73.147.88.91 の p_53（DNS）で、約7,000セッション、送信元は約200",
                 "ES の Search で開いて「Model does not exist」などのエラーが出たら、モデルがまだ共有されていない"]},
     text_row('<div class="aitk-step-head"><span class="aitk-tag aitk-tag-gui" style="background:#7b3fa0;">GUI</span><h2>ES 8 で検知（Detection）を作る</h2></div>'
-             '<p>資料 P159 の ES 8 の手順を、この環境の ES 8.7 のメニューに合わせて書いています。画面の文言は ES のバージョンで少し変わります。</p>'
+             '<p>資料の ES 8 の手順を、この環境の ES 8.7 のメニューに合わせて書いています。画面の文言は ES のバージョンで少し変わります。</p>'
              '<table class="aitk-table"><tbody>'
              '<tr><td><b>開く</b></td><td><a class="aitk-open" target="_blank" href="../SplunkEnterpriseSecuritySuite/ess_content_management">ES の Content management を開く ↗</a>'
              '（ES のメニューでは <b>Security content → Content management</b>）。<b>Create new content</b> から <b>Event-based detection</b> を選ぶ</td></tr>'
@@ -1483,10 +1483,10 @@ r3 = [
              '<tr><td><b>サーチ</b></td><td>上の Search 3-2 の SPL を貼る。inputlookup は時間範囲に関係なく全行を読むので、時間範囲は既定のままでよい</td></tr>'
              '<tr><td><b>スケジュール</b></td><td>演習では1時間ごとなど長めにする。実行のたびに同じ10件が出るので、確かめたら無効にする</td></tr>'
              '<tr><td><b>出力</b></td><td><b>Finding</b> を出す設定にし、タイトル（例：<code>マルウェアの疑い $dst_ip$:$dest_port$</code>）、セキュリティドメイン（Threat）、重大度（Medium など）を入れる</td></tr>'
-             '<tr><td><b>保存</b></td><td>保存して有効にする。ES 7 では Configure → Content → Content Management → Create New Content → Correlation Search で同じことをし、Adaptive Response で Notable を足す（資料 P160）</td></tr>'
+             '<tr><td><b>保存</b></td><td>保存して有効にする。ES 7 では Configure → Content → Content Management → Create New Content → Correlation Search で同じことをし、Adaptive Response で Notable を足す</td></tr>'
              '</tbody></table>'
              '<h4 style="margin:14px 0 4px;">結果を確かめる</h4>'
-             + ul(["次のスケジュール実行のあと、ES の <b>Mission Control</b> のキューで example_malware を探す。数分かかることがある（資料 P161 は ES 7 の Incident Review の画面）",
+             + ul(["次のスケジュール実行のあと、ES の <b>Mission Control</b> のキューで example_malware を探す。数分かかることがある（資料は ES 7 の Incident Review の画面）",
                    "Finding を開き、dst_ip、dest_port、sessions などの列が載っていることを確かめる",
                    "ES の <b>Audit → Machine learning audit</b> で、ES の中から使われた AI Toolkit のモデルの状況を見られる",
                    "演習が終わったら、Content management で example_malware の検知を<b>無効</b>にする"]) +
@@ -1519,11 +1519,11 @@ ROOKIES_SUMMARY = f'''
 <header class="aitk-doc-hero">
   <span class="aitk-kicker">AITK Security for Rookies ／ Summary</span>
   <h1>セキュリティの機械学習を始める前に</h1>
-  <p>Splunk4Rookies Machine Learning for Security の講義部分（P19〜P84）を、資料の順にまとめたページです。どんな種類の機械学習があり、Splunk のどこで使えて、データの何に気をつけ、SPL でどう準備して fit と apply で回すかを確認してから、3つの演習に進みます。</p>
+  <p>Splunk4Rookies Machine Learning for Security の講義部分を、資料の順にまとめたページです。どんな種類の機械学習があり、Splunk のどこで使えて、データの何に気をつけ、SPL でどう準備して fit と apply で回すかを確認してから、3つの演習に進みます。</p>
 </header>
 
 <section>
-  <h2>AI・機械学習・ディープラーニング {_pg("P19-25")}</h2>
+  <h2>AI・機械学習・ディープラーニング</h2>
   <p>AI はコンピューターにデータを処理させ、判断させる研究分野の全体です。その一部が機械学習（ML）で、人がほとんど手を入れずにデータから予測や洞察を得ます。さらにその一部で、ニューラルネットワークを使うのがディープラーニングです。</p>
   <p>この講座で扱うのは、AI Toolkit（旧 MLTK）で使える機械学習です。目的によって使い方が分かれます。</p>
   <table class="aitk-table">
@@ -1537,7 +1537,7 @@ ROOKIES_SUMMARY = f'''
 </section>
 
 <section>
-  <h2>検索のたびに ML を使える {_pg("P26")}</h2>
+  <h2>検索のたびに ML を使える</h2>
   {_slide(26)}
   <p>左から、工場の設備（Industrial Assets）、PC やスマートフォン、OT、IT のデータがリアルタイムに Splunk へ入ってきます。ML はその上の<b>サーチの1ステップ</b>として動くので、特別な仕組みを別に用意しなくても、どのサーチにも組み込めます。</p>
   <ul>
@@ -1548,19 +1548,19 @@ ROOKIES_SUMMARY = f'''
 </section>
 
 <section>
-  <h2>一度学習したモデルを使い続ける {_pg("P27")}</h2>
+  <h2>一度学習したモデルを使い続ける</h2>
   {_slide(27)}
-  <p>P26 の流れに、モデルの学習と保存が加わった図です。</p>
+  <p>前の図の流れに、モデルの学習と保存が加わった図です。</p>
   <ul>
     <li><code>| fit y from x* into "model"</code> を実行すると、計算は Python for Scientific Computing（Pandas、NumPy、SciPy、StatsModels、scikit-learn）が行い、結果は <b>persisted model</b>（保存されたモデル）として Splunk に残る</li>
     <li>以後のサーチは <code>| apply "model"</code> でそのモデルを呼び出すだけ。学習をやり直さずに、毎回同じ基準で新しいデータを判定できる</li>
-    <li>判定の結果は P26 と同じくアラートや可視化につなげる。モデルは定期的に学習し直して更新できる</li>
+    <li>判定の結果は、前の図と同じくアラートや可視化につなげる。モデルは定期的に学習し直して更新できる</li>
   </ul>
-  <p class="aitk-note">P50 と P81 にも同じ図が出てきます。演習2の <code>fit … into example_malware</code> と <code>apply example_malware</code> がこの形です。</p>
+  <p class="aitk-note">演習2の <code>fit … into example_malware</code> と <code>apply example_malware</code> がこの形です。</p>
 </section>
 
 <section>
-  <h2>Splunk の ML の全体像 {_pg("P29-30")}</h2>
+  <h2>Splunk の ML の全体像</h2>
   <div class="aitk-split">
     <div>{_slide(30)}</div>
     <div>
@@ -1578,7 +1578,7 @@ ROOKIES_SUMMARY = f'''
     </div>
   </div>
 
-  {_layer("#2f6fb7", "Splunk Enterprise &amp; Cloud（P31-35）")}
+  {_layer("#2f6fb7", "Splunk Enterprise &amp; Cloud")}
   <p>次の4つは Splunk Enterprise にも Splunk Cloud にも最初から入っているコマンドです。管理者の作業もアプリのインストールも要りません。例のサーチは、このアプリに同梱している firewall_traffic.csv（先頭5万行）で実際に動かした結果です。</p>
   <table class="aitk-table aitk-table-fixed">
     <thead><tr><th style="width:16%;">コマンド</th><th style="width:40%;">何をするか</th><th>例と、この環境での結果</th></tr></thead>
@@ -1597,9 +1597,9 @@ ROOKIES_SUMMARY = f'''
           <td><code>… | kmeans k=3 bytes_sent bytes_received</code><br/>48010 行のふつうの通信と、受信の多い 1437 行、受信がとても多い（平均約11万バイト）553 行の3つに分かれた</td></tr>
     </tbody>
   </table>
-  <p class="aitk-note">各コマンドの詳しい書き方は Search Reference（資料 P32-35 のリンク先）にあります。ここに挙げたのは一部で、ほかにも <code>predict</code>、<code>trendline</code>、<code>x11</code> などの統計コマンドがあります。演習1の Search 1-3 で使う <code>predict</code> もその1つです。</p>
+  <p class="aitk-note">各コマンドの詳しい書き方は Search Reference（資料のリンク先）にあります。ここに挙げたのは一部で、ほかにも <code>predict</code>、<code>trendline</code>、<code>x11</code> などの統計コマンドがあります。演習1の Search 1-3 で使う <code>predict</code> もその1つです。</p>
 
-  {_layer("#8a3fd1", "Splunkbase Apps（P36-39）")}
+  {_layer("#8a3fd1", "Splunkbase Apps")}
   <p>管理者に Splunkbase からアプリを入れてもらえるなら、次の段階に進めます。ML と AI に関係するアプリは、Splunkbase の Machine Learning コレクション（splunkbase.splunk.com/collections/machine_learning）にまとまっています。</p>
   <div class="aitk-split">
     <div>{_slide(37)}</div>
@@ -1616,7 +1616,7 @@ ROOKIES_SUMMARY = f'''
   </div>
   <p>AI Assistant は SPL 以外にも広がっています。資料（2025年8月）の時点で、AI Assistant for SPL と Observability Cloud の AI Assistant は提供中、Enterprise Security の AI Assistant はプライベートプレビューでした。今の提供状況は製品のドキュメントで確かめてください。</p>
 
-  {_layer("#d6337f", "Premium Apps（P40-45）")}
+  {_layer("#d6337f", "Premium Apps")}
   <p>有償のプレミアムアプリには、作り込まれた ML の機能、サーチ、モデルが最初から入っています。自分で作れば何百時間もかかるものを、そのまま使えます。</p>
   <h3>Splunk Enterprise Security と ESCU</h3>
   <div class="aitk-split">
@@ -1639,12 +1639,12 @@ ROOKIES_SUMMARY = f'''
   </div>
   <ul>
     <li><b>ITSI（Splunk の AIOps）</b>：アラートのまとめと削減、季節性を考えた動的なしきい値（Adaptive Thresholds）、異常と外れ値の検知、根本原因の調査の補助、サービスの健全性の予測で、障害を先回りして防ぐ。資料の時点の新機能は、Adaptive Thresholds での外れ値の除外と、ML によるしきい値の提案（プレビュー）</li>
-    <li><b>ITSI で ML 自体を監視する</b>：P44 は、学習したモデルの数や精度、データ収集の欠けまでを1画面で見る MLOps のダッシュボードの例</li>
+    <li><b>ITSI で ML 自体を監視する</b>：学習したモデルの数や精度、データ収集の欠けまでを1画面で見る MLOps のダッシュボードの例</li>
     <li><b>Observability Cloud の Autodetect</b>：すべてのサービスで性能のベースラインを作り、レイテンシー、エラー、リソース使用率の急な変化をアラートとして提案する。しきい値の調整や、サービスやチームごとの通知の設定もできる</li>
   </ul>
   {_slide(44, "aitk-fig aitk-slide aitk-slide-sm")}
 
-  {_layer("#e8762c", "MLTK（AI Toolkit）（P46-50）")}
+  {_layer("#e8762c", "MLTK（AI Toolkit）")}
   <p>自分で時間をかけてモデルを作りたい、またはプレミアムアプリの ML をさらに進めたいときに使うのが MLTK です。今は AI Toolkit という名前になっています。</p>
   <div class="aitk-split">
     <div>{_slide(47)}</div>
@@ -1664,7 +1664,7 @@ ROOKIES_SUMMARY = f'''
     </div>
   </div>
 
-  {_layer("#d9b52c", "DSDL（P51-53）")}
+  {_layer("#d9b52c", "DSDL")}
   <div class="aitk-split">
     <div>{_slide(52)}</div>
     <div>{_slide(53)}</div>
@@ -1679,7 +1679,7 @@ ROOKIES_SUMMARY = f'''
 </section>
 
 <section>
-  <h2>機械学習の種類とどこから始めるか {_pg("P54-56")}</h2>
+  <h2>機械学習の種類とどこから始めるか</h2>
   <p>ML のプロジェクトを成功させるには、データを理解し、きれいにして、運用に乗せるまでを順に進めます。最初に、どの種類の ML を使うかを決めます。</p>
   <table class="aitk-table">
     <thead><tr><th>種類</th><th>中身</th><th>この講座では</th></tr></thead>
@@ -1701,7 +1701,7 @@ ROOKIES_SUMMARY = f'''
 </section>
 
 <section>
-  <h2>良いデータかどうか {_pg("P57-62")}</h2>
+  <h2>良いデータかどうか</h2>
   <p>機械のデータは複雑です。ML に答えを出させるには、先にデータを理解しておく必要があります。次の5つがどれも無ければ、そのまま ML を始められます。あれば、集め直すか、きれいにしてからです。資料の図と合わせて見ていきます。</p>
 
   <h3>欠けたデータ（Missing Data）</h3>
@@ -1709,7 +1709,7 @@ ROOKIES_SUMMARY = f'''
     <div>{img("rk_p058.jpg", "aitk-fig aitk-fig-dark")}</div>
     <div>
       <p>ML は魔法のように見えますが、データに無いことには答えられません。</p>
-      <p><b>図の見方</b>：上の表は、Web のアクセスログの <code>clientip</code> から <code>iplocation</code> で国（Country）と都市（City）を付けた結果です。位置のデータベースで場所が分からなかったアドレスは、国も都市も空のままです。下の表は、空の欄に unknown を入れた後です（P77 の <code>fillnull</code>）。</p>
+      <p><b>図の見方</b>：上の表は、Web のアクセスログの <code>clientip</code> から <code>iplocation</code> で国（Country）と都市（City）を付けた結果です。位置のデータベースで場所が分からなかったアドレスは、国も都市も空のままです。下の表は、空の欄に <code>fillnull</code> で unknown を入れた後です。</p>
       <p><b>起きること</b>：学習に使えるデータが減ってモデルの性能が落ちる。項目同士の関係が崩れて、パターンを学べなくなる。欠けが特定のグループに偏っていると、予測も偏る。評価の数字もゆがむので、本当の性能が分からなくなる。</p>
     </div>
   </div>
@@ -1750,13 +1750,13 @@ ROOKIES_SUMMARY = f'''
     <div>
       <p>外れ値とは、大多数から大きく離れた点です。極端な値のこともあれば、単なる誤りのこともあります。</p>
       <p><b>図の見方</b>：演習1のログイン数の Showcase と同じグラフです。水色の帯がふだんの範囲で、帯を突き抜けた黄色の点が外れ値です。人なら「この点はふつうではないから計算から外そう」と判断できますが、アルゴリズムは渡されたデータを<b>すべて</b>使います。</p>
-      <p><b>起きること</b>：極端な点に学習が引っぱられる。平均や分散が大きく動き、評価の数字が実際より良くも悪くも見える。前処理の手間が増える。ふだんの範囲を学ばせたいときは、先に外れ値を除いておく（P34 の <code>| outlier</code> がその道具）。</p>
+      <p><b>起きること</b>：極端な点に学習が引っぱられる。平均や分散が大きく動き、評価の数字が実際より良くも悪くも見える。前処理の手間が増える。ふだんの範囲を学ばせたいときは、先に外れ値を除いておく（<code>| outlier</code> コマンドがその道具）。</p>
     </div>
   </div>
 </section>
 
 <section>
-  <h2>Splunk の上で ML の流れを完結させる {_pg("P63-64")}</h2>
+  <h2>Splunk の上で ML の流れを完結させる</h2>
   {_slide(64)}
   <p>ML と AI を実装するには、ふつうはたくさんの道具が要ります。データを置くデータレイク、データを整える ETL、ML の計算基盤、それらをまとめて動かす仕組み、そして全体を見張る監視の仕組みです。Splunk では、これを1つのプラットフォームで行えます。</p>
   <table class="aitk-table">
@@ -1766,7 +1766,7 @@ ROOKIES_SUMMARY = f'''
       <tr><td>クレンジングと整形</td><td>Ecosystem ＋ Splunk</td><td>SPL とアドオンでデータをきれいにする</td></tr>
       <tr><td>検索と探索</td><td>Ecosystem ＋ Splunk</td><td>サーチでデータの中身を確かめる</td></tr>
       <tr><td>前処理と特徴の選択</td><td>MLTK ＋ Splunk</td><td>StandardScaler、PCA、FieldSelector などで学習用に整える</td></tr>
-      <tr><td>アルゴリズムの選択</td><td>MLTK ＋ Splunk</td><td>目的に合うアルゴリズムを選ぶ（P83 の早見表）</td></tr>
+      <tr><td>アルゴリズムの選択</td><td>MLTK ＋ Splunk</td><td>目的に合うアルゴリズムを選ぶ（アルゴリズムの早見表）</td></tr>
       <tr><td>モデルの作成、テスト、改善</td><td>MLTK ＋ Splunk</td><td>fit、score、Experiments で作って比べる</td></tr>
       <tr><td>運用、監視、アラート</td><td>MLTK ＋ Splunk</td><td>apply をスケジュール検索やアラートにする</td></tr>
       <tr><td>可視化と共有</td><td>Ecosystem ＋ Splunk</td><td>ダッシュボードで結果をチームに見せる</td></tr>
@@ -1776,7 +1776,7 @@ ROOKIES_SUMMARY = f'''
 </section>
 
 <section>
-  <h2>ML に必要な3つの専門性 {_pg("P65")}</h2>
+  <h2>ML に必要な3つの専門性</h2>
   <div class="aitk-split">
     <div>{_slide(65)}</div>
     <div>
@@ -1793,7 +1793,7 @@ ROOKIES_SUMMARY = f'''
 </section>
 
 <section>
-  <h2>データサイエンティストが実際にやっていること {_pg("P66-67")}</h2>
+  <h2>データサイエンティストが実際にやっていること</h2>
   <div class="aitk-split">
     <div>{_slide(66)}</div>
     <div>
@@ -1815,10 +1815,10 @@ ROOKIES_SUMMARY = f'''
 </section>
 
 <section>
-  <h2>収集からモデルの運用まで {_pg("P68-81")}</h2>
+  <h2>収集からモデルの運用まで</h2>
   <p>ここからは、1本のサーチを1行ずつ育てながら、データの収集からモデルの運用までをたどります。資料では Web ショップのアクセスログ（<code>sourcetype=access_combined</code>）を使っています。</p>
 
-  <h3>1. 集める（P68）</h3>
+  <h3>1. 集める</h3>
   <p>機械が読める形のデータであれば、種類を問わず Splunk に取り込めます。資料では、ML に使えるのにまだ活かされていないことが多いデータとして、次の5つを挙げています。</p>
   <ul>
     <li>インフラのデータ</li>
@@ -1828,10 +1828,10 @@ ROOKIES_SUMMARY = f'''
     <li>IoT と OT のデータ</li>
   </ul>
 
-  <h3>2. 規模を気にせず貯める（P69）</h3>
+  <h3>2. 規模を気にせず貯める</h3>
   <p>拡張できるインデックスとストレージ、オンプレミスとクラウドを選べる提供形態、複数の場所のデータをまとめて分析する Federated Analytics があります。1日にペタバイト単位を取り込むお客様もいます。ML の流れでいう<b>データの置き場所</b>は、これで満たせます。</p>
 
-  <h3>3. データを理解する（P70-72）</h3>
+  <h3>3. データを理解する</h3>
   <div class="aitk-split">
     <div>{_slide(72)}</div>
     <div>
@@ -1841,39 +1841,39 @@ ROOKIES_SUMMARY = f'''
     </div>
   </div>
 
-  <h3>4. 良いデータかを確かめる（P73）</h3>
+  <h3>4. 良いデータかを確かめる</h3>
   <p>上の「良いデータかどうか」の5つ（欠け、ノイズ、偏り、重複、外れ値）を、SPL で1つずつ確かめながら整えていきます。ここからが ETL の Transform です。</p>
 
-  <h3>5. SPL で準備して、学習して、運用する（P74-80）</h3>
+  <h3>5. SPL で準備して、学習して、運用する</h3>
   <table class="aitk-table aitk-table-fixed">
     <thead><tr><th style="width:120px;">段階</th><th style="width:36%;">サーチに足す行</th><th>何をしているか</th></tr></thead>
     <tbody>
-      <tr><td><b>Access</b>（P74）</td><td><code>index="oidemo" sourcetype="access_combined"</code></td>
+      <tr><td><b>Access</b></td><td><code>index="oidemo" sourcetype="access_combined"</code></td>
           <td>データの置き場所（index）と種類（sourcetype）を指定する。sourcetype が決まると、取り出されるフィールドも決まる</td></tr>
-      <tr><td><b>Filter</b>（P75）</td><td><code>action=purchase</code></td>
+      <tr><td><b>Filter</b></td><td><code>action=purchase</code></td>
           <td>取り込み時に取り出した action フィールドで絞る。action には purchase、addtocart、view、remove、changequantity の5種類があり、購入（purchase）だけを残す。図は、絞り込みの前後でフィールドの値の一覧がどう変わるか</td></tr>
-      <tr><td><b>Transform</b>（P76）</td><td><code>| iplocation clientip</code></td>
-          <td>IP アドレスから国や都市を調べて、Country と City の列を足す。P72 の問い（どの国からか）にここで答えられる。ただし図のとおり、場所が分からない IP は空のまま</td></tr>
-      <tr><td><b>Clean</b>（P77）</td><td><code>| fillnull value="Unknown" Country</code></td>
+      <tr><td><b>Transform</b></td><td><code>| iplocation clientip</code></td>
+          <td>IP アドレスから国や都市を調べて、Country と City の列を足す。「どの国からか」という問いにここで答えられる。ただし図のとおり、場所が分からない IP は空のまま</td></tr>
+      <tr><td><b>Clean</b></td><td><code>| fillnull value="Unknown" Country</code></td>
           <td>ML は空の値を推測で補ってくれない。空のまま学習すると結果がゆがむので、空の Country に Unknown を入れる。fillnull は、データを整えるための数ある SPL コマンドの1つ</td></tr>
-      <tr><td><b>Aggregate</b>（P78）</td><td><code>| stats count by product device Country</code></td>
+      <tr><td><b>Aggregate</b></td><td><code>| stats count by product device Country</code></td>
           <td>商品、端末、国の組み合わせごとに件数を数え、学習に使う形にまとめる。必要なデータだけを、目的に合った形でモデルに渡す。ここまでの数行で、データサイエンティストの時間の8割にあたる準備が済んでいる</td></tr>
-      <tr><td><b>Train</b>（P79）</td><td><code>| fit algorithm from clientip into "model"</code></td>
+      <tr><td><b>Train</b></td><td><code>| fit algorithm from clientip into "model"</code></td>
           <td>モデルを学習する。fit の後ろにアルゴリズム名、from の後ろに入力の項目、into の後ろに保存するモデル名を書く。fit や apply は ML の世界の標準の用語。資料の行は形を示すための書き方で、実際には algorithm に LogisticRegression などの名前を入れる。保存は必須ではないが、学習は重いので毎回やり直すのは得策ではない</td></tr>
-      <tr><td><b>Apply</b>（P80）</td><td><code>| apply "model"</code></td>
+      <tr><td><b>Apply</b></td><td><code>| apply "model"</code></td>
           <td>学習が済んだら fit の行は要らない。代わりに apply で保存したモデルを当てる。apply の前の行（Access から Aggregate まで）は、<b>学習のときと同じ</b>にしておく。項目の作り方や埋め方が違うと、モデルは正しく判定できない</td></tr>
     </tbody>
   </table>
   <div class="aitk-pipeline-figs">
-    <div><span>P75 Filter</span>{img("rk_p075.jpg", "aitk-fig aitk-fig-dark")}</div>
-    <div><span>P76 Transform</span>{img("rk_p076.jpg", "aitk-fig aitk-fig-dark")}</div>
-    <div><span>P77 Clean</span>{img("rk_p077.jpg", "aitk-fig aitk-fig-dark")}</div>
-    <div><span>P78 Aggregate</span>{img("rk_p078.jpg", "aitk-fig aitk-fig-dark")}</div>
-    <div><span>P79 Train</span>{img("rk_p079.jpg", "aitk-fig aitk-fig-dark")}</div>
-    <div><span>P80 Apply</span>{img("rk_p080.jpg", "aitk-fig aitk-fig-dark")}</div>
+    <div><span>Filter</span>{img("rk_p075.jpg", "aitk-fig aitk-fig-dark")}</div>
+    <div><span>Transform</span>{img("rk_p076.jpg", "aitk-fig aitk-fig-dark")}</div>
+    <div><span>Clean</span>{img("rk_p077.jpg", "aitk-fig aitk-fig-dark")}</div>
+    <div><span>Aggregate</span>{img("rk_p078.jpg", "aitk-fig aitk-fig-dark")}</div>
+    <div><span>Train</span>{img("rk_p079.jpg", "aitk-fig aitk-fig-dark")}</div>
+    <div><span>Apply</span>{img("rk_p080.jpg", "aitk-fig aitk-fig-dark")}</div>
   </div>
 
-  <h3>6. 学習と運用の全体（P81）</h3>
+  <h3>6. 学習と運用の全体</h3>
   <div class="aitk-split">
     <div>{_slide(81)}</div>
     <div>
@@ -1881,7 +1881,7 @@ ROOKIES_SUMMARY = f'''
       <ul>
         <li><code>fit</code> に <code>into</code> を付けて学習すると、モデルが persisted model として保存される</li>
         <li>保存したモデルは、サーチに <code>| apply モデル名</code> を足すだけで運用に乗る</li>
-        <li>その結果を、P26 と同じくアラートや可視化につなげる</li>
+        <li>その結果を、最初の図と同じくアラートや可視化につなげる</li>
       </ul>
       <p>演習2では、この流れを firewall_traffic.csv で実際にたどります（Filter の代わりに <code>head</code> と <code>sample</code>、Train が <code>fit LogisticRegression</code>、Apply が <code>apply example_malware</code>）。</p>
     </div>
@@ -1889,7 +1889,7 @@ ROOKIES_SUMMARY = f'''
 </section>
 
 <section>
-  <h2>AI Toolkit のコマンドとアルゴリズム {_pg("P83-84")}</h2>
+  <h2>AI Toolkit のコマンドとアルゴリズム</h2>
   <table class="aitk-table">
     <thead><tr><th>コマンド</th><th>何をするか</th></tr></thead>
     <tbody>
@@ -1920,7 +1920,7 @@ ROOKIES_SUMMARY = f'''
 </section>
 
 <section>
-  <h2>AI Toolkit のアルゴリズム一覧 {_pg("P23-25, P91-96")}</h2>
+  <h2>AI Toolkit のアルゴリズム一覧</h2>
   <p>資料の3つの大項目（外れ値の検知、予測、分類・グループ分け）ごとに、AI Toolkit 6.1 のアルゴリズムの特徴と使いどころをまとめたページを、メニューの <b>アルゴリズム</b> に用意しています。</p>
   <ul>
     <li><a href="algo_overview">概要：3つの大項目と選び方、下ごしらえと分析</a></li>
@@ -1941,10 +1941,10 @@ ROOKIES_SUMMARY = f'''
 
 
 # ================================================================ Algorithm reference pages
-ALGO_OVERVIEW = '<div class="aitk-doc"><header class="aitk-doc-hero"><span class="aitk-kicker">アルゴリズム ／ 概要</span><h1>AI Toolkit のアルゴリズム</h1><p>この検証環境の AI Toolkit 6.1 には51のアルゴリズムが入っています。資料（Rookies P23-25、P91-96）にならって、外れ値の検知、予測、分類・グループ分けの3つの大項目に分け、どれにも入らない下ごしらえ用のものを別にまとめました。</p></header><section><h2>3つの大項目</h2><table class="aitk-table"><thead><tr><th style="width:24%;">大項目</th><th>何をするか</th><th style="width:30%;">中の分け方</th></tr></thead><tbody><tr><td><a href="algo_outlier"><b>外れ値の検知（Outlier）</b></a></td><td>ふだんの範囲を学び、そこから外れた振る舞いを見つけて調べる。ラベルの要らない教師なし学習</td><td>数値の項目、カテゴリの項目</td></tr><tr><td><a href="algo_predictive"><b>予測（Predictive）</b></a></td><td>これから起きそうなことに先回りする。正解の付いたデータで学ぶ教師あり学習と、時系列の予測</td><td>数値の予測（回帰）、カテゴリの予測（分類）、時系列の予測</td></tr><tr><td><a href="algo_categorization"><b>分類・グループ分け（Categorization）</b></a></td><td>データの中身を知って、いま起きていることにすばやく対応する</td><td>クラスタリング、つながりの分析、カテゴリの予測（分類）</td></tr></tbody></table><p>カテゴリの予測（分類）は、資料では予測にも分類・グループ分けにも入っています。このメニューでは<a href="algo_predictive">予測</a>のページに載せています。</p></section><section><h2>選び方</h2><ol><li><b>目的から大項目を決める</b>：ふだんとの違いを探すなら外れ値、正解のあるものを当てるなら予測、似た者同士をまとめるなら分類・グループ分け</li><li><b>項目の種類で絞る</b>：目的の項目が数値なら回帰、カテゴリなら分類。外れ値も、元の項目が数値かカテゴリかで道具が変わる</li><li><b>速くて説明しやすいものを基準にする</b>：LinearRegression、LogisticRegression、KMeans、DensityFunction から始める</li><li><b>score で比べる</b>：演習2のように、学習に使わなかったデータで評価しながら、ほかのアルゴリズムを試す</li><li><b>運用するなら保存できるものを選ぶ</b>：アラートや ES の検知で apply したいなら、保存の列が ○ のもの</li></ol><h3>アルゴリズムの早見表（資料 P83）</h3><img class="aitk-fig aitk-fig-wide" src="/static/app/aitk_security_training/img/r83_0.jpg"/></section><section><h2>下ごしらえと分析</h2><p>3つの大項目のどれでもなく、学習の前にデータを整えたり、データの性質を調べたりするものです（資料 P83 の Prepare Data と Analyze）。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>StandardScaler／RobustScaler</code></td><td>項目の単位や大きさをそろえる。StandardScaler は平均と標準偏差、RobustScaler は中央値と四分位範囲を使うので外れ値に強い</td><td>バイト数とパケット数のように桁の違う項目を、距離を使うアルゴリズム（KMeans、SVM、MLP）に渡す前</td><td style="text-align:center;">○</td></tr><tr><td><code>Imputer</code></td><td>欠けた値を平均、中央値、最頻値などで埋め、Imputed_&lt;項目&gt; 列を作る。この環境ではモデルの保存がエラーになった</td><td>欠けたデータ（Summary の良いデータかどうか）を学習の前に補うとき</td><td style="text-align:center;">×</td></tr><tr><td><code>PCA／KernelPCA／ICA</code></td><td>たくさんの数値の項目を、情報をなるべく残したまま少ない成分にまとめる。KernelPCA は曲がった関係、ICA は互いに独立な成分を取り出す</td><td>項目が多すぎるときや、グラフに描くために2〜3次元に減らしたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>FieldSelector</code></td><td>目的の項目との関係が強い入力だけを統計の検定で選ぶ</td><td>どの項目を予測に使えばよいか分からないとき</td><td style="text-align:center;">○</td></tr><tr><td><code>TFIDF／HashingVectorizer</code></td><td>文字列を単語や文字の出現の数値に変える。HashingVectorizer は保存できない</td><td>URL、コマンドライン、メールの件名などの文字列を、分類やクラスタリングに使いたいとき</td><td style="text-align:center;">○／×</td></tr><tr><td><code>NPR</code></td><td>値の種類が多いカテゴリの項目を、目的のクラスごとの割合（NPR_&lt;項目&gt;_&lt;クラス&gt;）の数値に変える。この環境では dest_port から NPR_dest_port_yes などができた</td><td>演習2の dest_port や dst_ip のように、種類が100を超えて学習から外されてしまう項目を使いたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>ACF／PACF</code></td><td>時系列の自己相関を求め、何点ごとに周期があるかを調べる。保存はできない</td><td>ARIMA や StateSpaceForecast の前に、1日や1週間の周期があるかを確かめるとき</td><td style="text-align:center;">×</td></tr><tr><td><code>AITKContainer</code></td><td>学習と推論を外部のコンテナに任せる（DSDL と同じ仕組み）。コンテナの接続先の設定が必要で、この環境では未設定</td><td>深層学習や GPU を使いたいとき（ピラミッドの DSDL の層）</td><td style="text-align:center;">―</td></tr></tbody></table><p class="aitk-note"><b>保存</b>の列は、<code>into</code> でモデルを保存できるか（あとで <code>apply</code> できるか）を、この検証環境の AI Toolkit 6.1 で実際に試した結果です。× は使うたびに fit します。「―」はモデルを作らないものです。</p></section><footer class="aitk-next"><b>アルゴリズム</b><a href="algo_overview">概要</a><a href="algo_outlier">外れ値（Outlier）</a><a href="algo_predictive">予測（Predictive）</a><a href="algo_categorization">分類（Categorization）</a></footer></div>'
-ALGO_OUTLIER = '<div class="aitk-doc"><header class="aitk-doc-hero"><span class="aitk-kicker">アルゴリズム ／ 外れ値（Outlier）</span><h1>外れ値の検知のアルゴリズム</h1><p>ふだんの範囲を学び、そこから外れた点を見つけます。ラベルの要らない教師なし学習です。元の項目が数値かカテゴリかで、使う道具が変わります（資料 Rookies P91-96）。</p></header><section><h2>数値の項目</h2><p>ふだんの範囲を学び、そこから外れた点を見つけます。ラベルの要らない教師なし学習です。演習1の MAD（中央値からのずれ）はアルゴリズムではなく、SPL の統計で計算する方法です。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>DensityFunction</code></td><td>1つの数値の分布（正規、指数、ガウス KDE、ベータ）を推定し、起きる確率がとても低い端を外れ値にする。<code>by</code> で時間帯などのグループごとに分布を分けられる。入力は1項目だけ</td><td>時間帯ごとのログオン失敗数、通信量、CPU 使用率など、1つの指標のふだんの範囲を作りたいとき（Primer のシナリオ1・2・4）</td><td style="text-align:center;">○</td></tr><tr><td><code>MultivariateOutlierDetection</code></td><td>複数の数値を StandardScaler でそろえ、PCA で1つの成分（PC_1）にまとめてから DensityFunction を当てる。この環境では SS_*、PC_1、IsOutlier(PC_1) の列が出た</td><td>送信バイト数、受信バイト数、パケット数のように、1つずつではふつうでも組み合わせると不自然な通信を見つけたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>LocalOutlierFactor</code></td><td>その点のまわりの密度を、近くの点のまわりの密度と比べる。全体の範囲の中にあっても、仲間のいない点を外れ値にできる</td><td>まとまりがいくつもある多次元のデータを、その場で調べるとき。モデルを保存できないので、アラートには毎回 fit する形になる</td><td style="text-align:center;">×</td></tr><tr><td><code>OneClassSVM</code></td><td>正常なデータだけから、ふだんの領域の境界を学ぶ。結果は isNormal 列に入る。データが多いと学習が重い</td><td>攻撃のデータが手に入らず、正常な通信や操作のデータだけで基準を作りたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>AutoAnomalyDetection</code></td><td>Splunk App for Anomaly Detection のジョブが裏で使う。1項目だけで、job_name の指定が必須</td><td>直接は使わない。このアプリは 2025年6月でサポートが終わっている（Primer シナリオ2）</td><td style="text-align:center;">―</td></tr></tbody></table><p class="aitk-note">演習1の MAD（中央値からのずれ）と Primer の平均±2σはアルゴリズムではなく、SPL の統計で計算する方法です。</p><p class="aitk-note"><b>保存</b>の列は、<code>into</code> でモデルを保存できるか（あとで <code>apply</code> できるか）を、この検証環境の AI Toolkit 6.1 で実際に試した結果です。× は使うたびに fit します。「―」はモデルを作らないものです。</p></section><section><h2>カテゴリの項目</h2><table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>| anomalydetection（コマンド）</code></td><td>値の組み合わせがどれくらい起きやすいかを確率で求め、めったに起きない組み合わせを取り出す。AI Toolkit の Detect Categorical Outliers アシスタントが使う</td><td>ユーザー、アプリ、国の組み合わせなど、カテゴリの項目で珍しいものを探すとき</td><td style="text-align:center;">―</td></tr><tr><td><code>（One-hot エンコーディング）</code></td><td>カテゴリの値ごとに 0／1 の列を作り、数値のアルゴリズムで扱えるようにする。fit が自動で行う（資料 P94-95）</td><td>上の数値のアルゴリズムに、OS や権限のようなカテゴリの項目も混ぜたいとき。値の種類が100を超える項目は既定で学習から外される</td><td style="text-align:center;">―</td></tr></tbody></table></section><footer class="aitk-next"><b>アルゴリズム</b><a href="algo_overview">概要</a><a href="algo_outlier">外れ値（Outlier）</a><a href="algo_predictive">予測（Predictive）</a><a href="algo_categorization">分類（Categorization）</a></footer></div>'
-ALGO_PREDICTIVE = '<div class="aitk-doc"><header class="aitk-doc-hero"><span class="aitk-kicker">アルゴリズム ／ 予測（Predictive）</span><h1>予測のアルゴリズム</h1><p>正解の値が付いたデータで学び、まだ分からない値を当てます。目的の項目が数値なら回帰、カテゴリなら分類を使います。時間とともに変わる値の先行きは、時系列の予測で求めます（資料 Rookies P23）。</p></header><section><h2>数値の予測（回帰）</h2><p>正解の値が付いたデータで学ぶ教師あり学習です。目的の項目が数値なら回帰、カテゴリなら分類を使います。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>LinearRegression</code></td><td>入力と目的の値の関係を直線（平面）で表す。速く、係数で関係を説明しやすい</td><td>まず試す基準として。ユーザー数から通信量を見積もるなど、関係がほぼ比例するとき</td><td style="text-align:center;">○</td></tr><tr><td><code>Ridge／Lasso／ElasticNet</code></td><td>LinearRegression に、係数が大きくなりすぎないための罰則を加えたもの。Lasso は効かない入力の係数を 0 にして、項目を絞り込む。ElasticNet は両方の中間</td><td>入力の項目が多く、互いに似た項目（送受信のバイト数とパケット数など）が混じっているとき</td><td style="text-align:center;">○</td></tr><tr><td><code>KernelRidge</code></td><td>カーネルで曲がった関係も表せる Ridge。データが多いと重い</td><td>関係が直線ではなく、データが数千行程度までのとき</td><td style="text-align:center;">○</td></tr><tr><td><code>DecisionTreeRegressor</code></td><td>しきい値の分かれ道を重ねて値を予測する。結果を説明しやすいが、学習データに合わせすぎやすい</td><td>どの条件で値が大きくなるのかを人が読みたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>RandomForestRegressor／GradientBoostingRegressor</code></td><td>決定木をたくさん組み合わせる。RandomForest は多数決で安定、GradientBoosting は前の木の誤りを順に直すので精度が出やすいが調整が要る</td><td>関係が複雑で、精度を優先したいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>SGDRegressor</code></td><td>少しずつ学習する線形回帰。partial_fit で、前のモデルに新しいデータを足して学習し直せる</td><td>データが大きく、毎日の新しいデータでモデルを少しずつ更新したいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>SystemIdentification</code></td><td>複数の時系列から、時間の遅れ（どれだけ前の値が効くか）を考えて目的の値を予測する。_time と dynamics の指定が必要</td><td>複数のサーバーの負荷や通信量の動きから、後に続く指標の値を予測したいとき</td><td style="text-align:center;">○</td></tr></tbody></table><p class="aitk-note"><b>保存</b>の列は、<code>into</code> でモデルを保存できるか（あとで <code>apply</code> できるか）を、この検証環境の AI Toolkit 6.1 で実際に試した結果です。× は使うたびに fit します。「―」はモデルを作らないものです。</p></section><section><h2>カテゴリの予測（分類）</h2><p>資料の Categorical Regression で、Categorization にも入っています。F1 は演習2（firewall_traffic.csv、70/30）の結果です。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>LogisticRegression</code></td><td>yes／no などの確率を線形のモデルで求める。速く、まず試す基準になる</td><td>演習2の最初のモデル。この環境では F1 0.79</td><td style="text-align:center;">○</td></tr><tr><td><code>SVM</code></td><td>カーネルで曲がった境界を引ける。この環境では学習が1万行に間引かれ、演習2のデータでは F1 0.46 だった</td><td>データが中くらいまでで、境界が複雑なとき</td><td style="text-align:center;">○</td></tr><tr><td><code>RandomForestClassifier</code></td><td>決定木の多数決。外れ値や偏ったデータに比較的強く、どの入力が効いたかを summary で見られる</td><td>演習2で採用（F1 0.99）。通信やイベントの記録から、マルウェアか、真陽性かを当てたいときの第一候補</td><td style="text-align:center;">○</td></tr><tr><td><code>DecisionTreeClassifier</code></td><td>しきい値の分かれ道で分ける。判定の理由を説明しやすい</td><td>判定のルールを人が読んで、検知のサーチに書き直したいとき（演習2では F1 0.99）</td><td style="text-align:center;">○</td></tr><tr><td><code>GradientBoostingClassifier</code></td><td>前の木の誤りを順に直していく。精度が出やすいが、学習が遅く調整が要る</td><td>RandomForest で足りないときに試す</td><td style="text-align:center;">○</td></tr><tr><td><code>GaussianNB／BernoulliNB</code></td><td>項目どうしが独立だと仮定する単純なモデル。とても速い。GaussianNB は数値が正規分布に近いとき、BernoulliNB は 0／1 の項目向け</td><td>GaussianNB は演習2では F1 0.44。BernoulliNB は、ある単語やフラグが含まれるかどうかで分類するとき</td><td style="text-align:center;">○</td></tr><tr><td><code>MLPClassifier</code></td><td>小さなニューラルネットワーク。複雑な境界も学べるが、入力をそろえる（StandardScaler）必要があり、学習も重い</td><td>ほかの方法で精度が出ず、データが十分にあるとき</td><td style="text-align:center;">○</td></tr><tr><td><code>SGDClassifier</code></td><td>少しずつ学習する線形の分類。partial_fit で新しいデータを足して学習し直せる</td><td>データが大きく、毎日のデータでモデルを更新し続けたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>AutoPrediction</code></td><td>目的の項目が数値かカテゴリかを見て、回帰か分類かを自動で選ぶ。Smart Prediction アシスタントが使う</td><td>まず手早く当たりを付けたいとき。Showcase の Predict the Presence of Vulnerabilities がこれ</td><td style="text-align:center;">○</td></tr></tbody></table></section><section><h2>時系列の予測</h2><table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>StateSpaceForecast</code></td><td>カルマンフィルターを使う状態空間モデル。周期を扱え、複数の時系列を同時に予測でき、95%の予測区間も出す</td><td>CPU 使用率やログイン数の先行きを予測し、予測の範囲から外れたら知らせたいとき（Primer シナリオ3）</td><td style="text-align:center;">○</td></tr><tr><td><code>ARIMA</code></td><td>自己回帰と移動平均で1本の時系列を予測する。等間隔で欠けのないデータが必要</td><td>1つの指標を細かく調整して予測したいとき。保存できないので、使うたびに fit する</td><td style="text-align:center;">×</td></tr><tr><td><code>| predict（コマンド）</code></td><td>Splunk 標準の予測コマンド。LLP、LLP5 などの方式で、周期と傾きを自動で扱う</td><td>手軽に予測したいとき。演習1の Showcase の予測値はこれ</td><td style="text-align:center;">―</td></tr><tr><td><code>FineTuneCDTSM</code></td><td>時系列の基盤モデル（TSFM）を自分のデータで追加学習したもの。AI Toolkit の Fine tune time series foundation model の画面で作って公開すると使える</td><td>ふつうの予測モデルでは周期や傾向をとらえきれないとき</td><td style="text-align:center;">○</td></tr></tbody></table></section><footer class="aitk-next"><b>アルゴリズム</b><a href="algo_overview">概要</a><a href="algo_outlier">外れ値（Outlier）</a><a href="algo_predictive">予測（Predictive）</a><a href="algo_categorization">分類（Categorization）</a></footer></div>'
-ALGO_CATEGORIZATION = '<div class="aitk-doc"><header class="aitk-doc-hero"><span class="aitk-kicker">アルゴリズム ／ 分類（Categorization）</span><h1>分類・グループ分けのアルゴリズム</h1><p>データの中身を知って、いま起きていることにすばやく対応するための道具です。ラベルを使わずに似た者同士をまとめるクラスタリングと、送信元と宛先のようなつながりを網の目として調べるグラフの分析があります（資料 Rookies P24）。</p></header><section><h2>クラスタリング</h2><p>ラベルを使わずに、似た者同士をまとめます。カテゴリの予測（分類）は上の表を見てください。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>KMeans</code></td><td>数値の項目で、点を k 個のまとまりに分ける。各まとまりは中心で表される。k は自分で決める</td><td>端末やユーザーを、通信量や操作の量で、似た者同士のグループに分けたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>XMeans／GMeans</code></td><td>まとまりの数 k を自動で決める KMeans。GMeans は、まとまりが正規分布に近くなるまで分け続ける</td><td>いくつのグループに分かれるか見当がつかないとき</td><td style="text-align:center;">○</td></tr><tr><td><code>Birch</code></td><td>大量のデータを少しずつまとめていく。partial_fit で追加の学習ができる</td><td>データが多く、KMeans では重いとき</td><td style="text-align:center;">○</td></tr><tr><td><code>DBSCAN</code></td><td>点の密集しているところをまとまりとし、どこにも属さない点はノイズとして残す。形がいびつなまとまりも見つけられる。k は不要</td><td>まとまりから外れた点（ノイズ）も一緒に見たいとき。保存できないので、使うたびに fit する</td><td style="text-align:center;">×</td></tr><tr><td><code>SpectralClustering</code></td><td>点どうしのつながりの強さからまとまりを作る。入れ子や輪のような形にも強いが、データが多いと重い</td><td>形の複雑なまとまりを、数千行程度までのデータで調べるとき</td><td style="text-align:center;">×</td></tr></tbody></table><p class="aitk-note"><b>保存</b>の列は、<code>into</code> でモデルを保存できるか（あとで <code>apply</code> できるか）を、この検証環境の AI Toolkit 6.1 で実際に試した結果です。× は使うたびに fit します。「―」はモデルを作らないものです。</p></section><section><h2>つながりの分析（グラフ）</h2><p>送信元と宛先のような2つの項目を、点と線の網の目として扱います。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>GraphCentrality</code></td><td>送信元と宛先のつながりを網の目として見て、各点がどれだけ中心にいるか（degree_centrality など）を求める</td><td>多くの相手とつながっている端末やサーバー（ハブ）を見つけたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>GraphConnectedComponents</code></td><td>つながっている点どうしを1つのグループにまとめる</td><td>互いに通信している端末のかたまりを見つけたいとき。横展開の範囲を調べるときなど</td><td style="text-align:center;">○</td></tr><tr><td><code>GraphLabelPropagation</code></td><td>つながりの強さから、網の目をコミュニティに分ける</td><td>つながり方の似た端末やアカウントのグループを見つけたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>MinimumSpanningTree</code></td><td>すべての点を最小の重みでつなぐ木を作る</td><td>この環境（AI Toolkit 6.1）では実行時にエラーになり、動かなかった</td><td style="text-align:center;">―</td></tr></tbody></table></section><section><h2>カテゴリの予測（分類）</h2><p>資料ではカテゴリの予測（Categorical Regression）もこの大項目に入っています。正解の付いたデータで学ぶ方法なので、<a href="algo_predictive">予測</a>のページにまとめています。</p></section><footer class="aitk-next"><b>アルゴリズム</b><a href="algo_overview">概要</a><a href="algo_outlier">外れ値（Outlier）</a><a href="algo_predictive">予測（Predictive）</a><a href="algo_categorization">分類（Categorization）</a></footer></div>'
+ALGO_OVERVIEW = '<div class="aitk-doc"><header class="aitk-doc-hero"><span class="aitk-kicker">アルゴリズム ／ 概要</span><h1>AI Toolkit のアルゴリズム</h1><p>この検証環境の AI Toolkit 6.1 には51のアルゴリズムが入っています。資料にならって、外れ値の検知、予測、分類・グループ分けの3つの大項目に分け、どれにも入らない下ごしらえ用のものを別にまとめました。</p></header><section><h2>3つの大項目</h2><table class="aitk-table"><thead><tr><th style="width:24%;">大項目</th><th>何をするか</th><th style="width:30%;">中の分け方</th></tr></thead><tbody><tr><td><a href="algo_outlier"><b>外れ値の検知（Outlier）</b></a></td><td>ふだんの範囲を学び、そこから外れた振る舞いを見つけて調べる。ラベルの要らない教師なし学習</td><td>数値の項目、カテゴリの項目</td></tr><tr><td><a href="algo_predictive"><b>予測（Predictive）</b></a></td><td>これから起きそうなことに先回りする。正解の付いたデータで学ぶ教師あり学習と、時系列の予測</td><td>数値の予測（回帰）、カテゴリの予測（分類）、時系列の予測</td></tr><tr><td><a href="algo_categorization"><b>分類・グループ分け（Categorization）</b></a></td><td>データの中身を知って、いま起きていることにすばやく対応する</td><td>クラスタリング、つながりの分析、カテゴリの予測（分類）</td></tr></tbody></table><p>カテゴリの予測（分類）は、資料では予測にも分類・グループ分けにも入っています。このメニューでは<a href="algo_predictive">予測</a>のページに載せています。</p></section><section><h2>選び方</h2><ol><li><b>目的から大項目を決める</b>：ふだんとの違いを探すなら外れ値、正解のあるものを当てるなら予測、似た者同士をまとめるなら分類・グループ分け</li><li><b>項目の種類で絞る</b>：目的の項目が数値なら回帰、カテゴリなら分類。外れ値も、元の項目が数値かカテゴリかで道具が変わる</li><li><b>速くて説明しやすいものを基準にする</b>：LinearRegression、LogisticRegression、KMeans、DensityFunction から始める</li><li><b>score で比べる</b>：演習2のように、学習に使わなかったデータで評価しながら、ほかのアルゴリズムを試す</li><li><b>運用するなら保存できるものを選ぶ</b>：アラートや ES の検知で apply したいなら、保存の列が ○ のもの</li></ol><h3>アルゴリズムの早見表</h3><img class="aitk-fig aitk-fig-wide" src="/static/app/aitk_security_training/img/r83_0.jpg"/></section><section><h2>下ごしらえと分析</h2><p>3つの大項目のどれでもなく、学習の前にデータを整えたり、データの性質を調べたりするものです（資料の Prepare Data と Analyze）。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>StandardScaler／RobustScaler</code></td><td>項目の単位や大きさをそろえる。StandardScaler は平均と標準偏差、RobustScaler は中央値と四分位範囲を使うので外れ値に強い</td><td>バイト数とパケット数のように桁の違う項目を、距離を使うアルゴリズム（KMeans、SVM、MLP）に渡す前</td><td style="text-align:center;">○</td></tr><tr><td><code>Imputer</code></td><td>欠けた値を平均、中央値、最頻値などで埋め、Imputed_&lt;項目&gt; 列を作る。この環境ではモデルの保存がエラーになった</td><td>欠けたデータ（Summary の良いデータかどうか）を学習の前に補うとき</td><td style="text-align:center;">×</td></tr><tr><td><code>PCA／KernelPCA／ICA</code></td><td>たくさんの数値の項目を、情報をなるべく残したまま少ない成分にまとめる。KernelPCA は曲がった関係、ICA は互いに独立な成分を取り出す</td><td>項目が多すぎるときや、グラフに描くために2〜3次元に減らしたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>FieldSelector</code></td><td>目的の項目との関係が強い入力だけを統計の検定で選ぶ</td><td>どの項目を予測に使えばよいか分からないとき</td><td style="text-align:center;">○</td></tr><tr><td><code>TFIDF／HashingVectorizer</code></td><td>文字列を単語や文字の出現の数値に変える。HashingVectorizer は保存できない</td><td>URL、コマンドライン、メールの件名などの文字列を、分類やクラスタリングに使いたいとき</td><td style="text-align:center;">○／×</td></tr><tr><td><code>NPR</code></td><td>値の種類が多いカテゴリの項目を、目的のクラスごとの割合（NPR_&lt;項目&gt;_&lt;クラス&gt;）の数値に変える。この環境では dest_port から NPR_dest_port_yes などができた</td><td>演習2の dest_port や dst_ip のように、種類が100を超えて学習から外されてしまう項目を使いたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>ACF／PACF</code></td><td>時系列の自己相関を求め、何点ごとに周期があるかを調べる。保存はできない</td><td>ARIMA や StateSpaceForecast の前に、1日や1週間の周期があるかを確かめるとき</td><td style="text-align:center;">×</td></tr><tr><td><code>AITKContainer</code></td><td>学習と推論を外部のコンテナに任せる（DSDL と同じ仕組み）。コンテナの接続先の設定が必要で、この環境では未設定</td><td>深層学習や GPU を使いたいとき（ピラミッドの DSDL の層）</td><td style="text-align:center;">―</td></tr></tbody></table><p class="aitk-note"><b>保存</b>の列は、<code>into</code> でモデルを保存できるか（あとで <code>apply</code> できるか）を、この検証環境の AI Toolkit 6.1 で実際に試した結果です。× は使うたびに fit します。「―」はモデルを作らないものです。</p></section><footer class="aitk-next"><b>アルゴリズム</b><a href="algo_overview">概要</a><a href="algo_outlier">外れ値（Outlier）</a><a href="algo_predictive">予測（Predictive）</a><a href="algo_categorization">分類（Categorization）</a></footer></div>'
+ALGO_OUTLIER = '<div class="aitk-doc"><header class="aitk-doc-hero"><span class="aitk-kicker">アルゴリズム ／ 外れ値（Outlier）</span><h1>外れ値の検知のアルゴリズム</h1><p>ふだんの範囲を学び、そこから外れた点を見つけます。ラベルの要らない教師なし学習です。元の項目が数値かカテゴリかで、使う道具が変わります。</p></header><section><h2>数値の項目</h2><p>ふだんの範囲を学び、そこから外れた点を見つけます。ラベルの要らない教師なし学習です。演習1の MAD（中央値からのずれ）はアルゴリズムではなく、SPL の統計で計算する方法です。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>DensityFunction</code></td><td>1つの数値の分布（正規、指数、ガウス KDE、ベータ）を推定し、起きる確率がとても低い端を外れ値にする。<code>by</code> で時間帯などのグループごとに分布を分けられる。入力は1項目だけ</td><td>時間帯ごとのログオン失敗数、通信量、CPU 使用率など、1つの指標のふだんの範囲を作りたいとき（Primer のシナリオ1・2・4）</td><td style="text-align:center;">○</td></tr><tr><td><code>MultivariateOutlierDetection</code></td><td>複数の数値を StandardScaler でそろえ、PCA で1つの成分（PC_1）にまとめてから DensityFunction を当てる。この環境では SS_*、PC_1、IsOutlier(PC_1) の列が出た</td><td>送信バイト数、受信バイト数、パケット数のように、1つずつではふつうでも組み合わせると不自然な通信を見つけたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>LocalOutlierFactor</code></td><td>その点のまわりの密度を、近くの点のまわりの密度と比べる。全体の範囲の中にあっても、仲間のいない点を外れ値にできる</td><td>まとまりがいくつもある多次元のデータを、その場で調べるとき。モデルを保存できないので、アラートには毎回 fit する形になる</td><td style="text-align:center;">×</td></tr><tr><td><code>OneClassSVM</code></td><td>正常なデータだけから、ふだんの領域の境界を学ぶ。結果は isNormal 列に入る。データが多いと学習が重い</td><td>攻撃のデータが手に入らず、正常な通信や操作のデータだけで基準を作りたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>AutoAnomalyDetection</code></td><td>Splunk App for Anomaly Detection のジョブが裏で使う。1項目だけで、job_name の指定が必須</td><td>直接は使わない。このアプリは 2025年6月でサポートが終わっている（Primer シナリオ2）</td><td style="text-align:center;">―</td></tr></tbody></table><p class="aitk-note">演習1の MAD（中央値からのずれ）と Primer の平均±2σはアルゴリズムではなく、SPL の統計で計算する方法です。</p><p class="aitk-note"><b>保存</b>の列は、<code>into</code> でモデルを保存できるか（あとで <code>apply</code> できるか）を、この検証環境の AI Toolkit 6.1 で実際に試した結果です。× は使うたびに fit します。「―」はモデルを作らないものです。</p></section><section><h2>カテゴリの項目</h2><table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>| anomalydetection（コマンド）</code></td><td>値の組み合わせがどれくらい起きやすいかを確率で求め、めったに起きない組み合わせを取り出す。AI Toolkit の Detect Categorical Outliers アシスタントが使う</td><td>ユーザー、アプリ、国の組み合わせなど、カテゴリの項目で珍しいものを探すとき</td><td style="text-align:center;">―</td></tr><tr><td><code>（One-hot エンコーディング）</code></td><td>カテゴリの値ごとに 0／1 の列を作り、数値のアルゴリズムで扱えるようにする。fit が自動で行う</td><td>上の数値のアルゴリズムに、OS や権限のようなカテゴリの項目も混ぜたいとき。値の種類が100を超える項目は既定で学習から外される</td><td style="text-align:center;">―</td></tr></tbody></table></section><footer class="aitk-next"><b>アルゴリズム</b><a href="algo_overview">概要</a><a href="algo_outlier">外れ値（Outlier）</a><a href="algo_predictive">予測（Predictive）</a><a href="algo_categorization">分類（Categorization）</a></footer></div>'
+ALGO_PREDICTIVE = '<div class="aitk-doc"><header class="aitk-doc-hero"><span class="aitk-kicker">アルゴリズム ／ 予測（Predictive）</span><h1>予測のアルゴリズム</h1><p>正解の値が付いたデータで学び、まだ分からない値を当てます。目的の項目が数値なら回帰、カテゴリなら分類を使います。時間とともに変わる値の先行きは、時系列の予測で求めます。</p></header><section><h2>数値の予測（回帰）</h2><p>正解の値が付いたデータで学ぶ教師あり学習です。目的の項目が数値なら回帰、カテゴリなら分類を使います。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>LinearRegression</code></td><td>入力と目的の値の関係を直線（平面）で表す。速く、係数で関係を説明しやすい</td><td>まず試す基準として。ユーザー数から通信量を見積もるなど、関係がほぼ比例するとき</td><td style="text-align:center;">○</td></tr><tr><td><code>Ridge／Lasso／ElasticNet</code></td><td>LinearRegression に、係数が大きくなりすぎないための罰則を加えたもの。Lasso は効かない入力の係数を 0 にして、項目を絞り込む。ElasticNet は両方の中間</td><td>入力の項目が多く、互いに似た項目（送受信のバイト数とパケット数など）が混じっているとき</td><td style="text-align:center;">○</td></tr><tr><td><code>KernelRidge</code></td><td>カーネルで曲がった関係も表せる Ridge。データが多いと重い</td><td>関係が直線ではなく、データが数千行程度までのとき</td><td style="text-align:center;">○</td></tr><tr><td><code>DecisionTreeRegressor</code></td><td>しきい値の分かれ道を重ねて値を予測する。結果を説明しやすいが、学習データに合わせすぎやすい</td><td>どの条件で値が大きくなるのかを人が読みたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>RandomForestRegressor／GradientBoostingRegressor</code></td><td>決定木をたくさん組み合わせる。RandomForest は多数決で安定、GradientBoosting は前の木の誤りを順に直すので精度が出やすいが調整が要る</td><td>関係が複雑で、精度を優先したいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>SGDRegressor</code></td><td>少しずつ学習する線形回帰。partial_fit で、前のモデルに新しいデータを足して学習し直せる</td><td>データが大きく、毎日の新しいデータでモデルを少しずつ更新したいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>SystemIdentification</code></td><td>複数の時系列から、時間の遅れ（どれだけ前の値が効くか）を考えて目的の値を予測する。_time と dynamics の指定が必要</td><td>複数のサーバーの負荷や通信量の動きから、後に続く指標の値を予測したいとき</td><td style="text-align:center;">○</td></tr></tbody></table><p class="aitk-note"><b>保存</b>の列は、<code>into</code> でモデルを保存できるか（あとで <code>apply</code> できるか）を、この検証環境の AI Toolkit 6.1 で実際に試した結果です。× は使うたびに fit します。「―」はモデルを作らないものです。</p></section><section><h2>カテゴリの予測（分類）</h2><p>資料の Categorical Regression で、Categorization にも入っています。F1 は演習2（firewall_traffic.csv、70/30）の結果です。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>LogisticRegression</code></td><td>yes／no などの確率を線形のモデルで求める。速く、まず試す基準になる</td><td>演習2の最初のモデル。この環境では F1 0.79</td><td style="text-align:center;">○</td></tr><tr><td><code>SVM</code></td><td>カーネルで曲がった境界を引ける。この環境では学習が1万行に間引かれ、演習2のデータでは F1 0.46 だった</td><td>データが中くらいまでで、境界が複雑なとき</td><td style="text-align:center;">○</td></tr><tr><td><code>RandomForestClassifier</code></td><td>決定木の多数決。外れ値や偏ったデータに比較的強く、どの入力が効いたかを summary で見られる</td><td>演習2で採用（F1 0.99）。通信やイベントの記録から、マルウェアか、真陽性かを当てたいときの第一候補</td><td style="text-align:center;">○</td></tr><tr><td><code>DecisionTreeClassifier</code></td><td>しきい値の分かれ道で分ける。判定の理由を説明しやすい</td><td>判定のルールを人が読んで、検知のサーチに書き直したいとき（演習2では F1 0.99）</td><td style="text-align:center;">○</td></tr><tr><td><code>GradientBoostingClassifier</code></td><td>前の木の誤りを順に直していく。精度が出やすいが、学習が遅く調整が要る</td><td>RandomForest で足りないときに試す</td><td style="text-align:center;">○</td></tr><tr><td><code>GaussianNB／BernoulliNB</code></td><td>項目どうしが独立だと仮定する単純なモデル。とても速い。GaussianNB は数値が正規分布に近いとき、BernoulliNB は 0／1 の項目向け</td><td>GaussianNB は演習2では F1 0.44。BernoulliNB は、ある単語やフラグが含まれるかどうかで分類するとき</td><td style="text-align:center;">○</td></tr><tr><td><code>MLPClassifier</code></td><td>小さなニューラルネットワーク。複雑な境界も学べるが、入力をそろえる（StandardScaler）必要があり、学習も重い</td><td>ほかの方法で精度が出ず、データが十分にあるとき</td><td style="text-align:center;">○</td></tr><tr><td><code>SGDClassifier</code></td><td>少しずつ学習する線形の分類。partial_fit で新しいデータを足して学習し直せる</td><td>データが大きく、毎日のデータでモデルを更新し続けたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>AutoPrediction</code></td><td>目的の項目が数値かカテゴリかを見て、回帰か分類かを自動で選ぶ。Smart Prediction アシスタントが使う</td><td>まず手早く当たりを付けたいとき。Showcase の Predict the Presence of Vulnerabilities がこれ</td><td style="text-align:center;">○</td></tr></tbody></table></section><section><h2>時系列の予測</h2><table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>StateSpaceForecast</code></td><td>カルマンフィルターを使う状態空間モデル。周期を扱え、複数の時系列を同時に予測でき、95%の予測区間も出す</td><td>CPU 使用率やログイン数の先行きを予測し、予測の範囲から外れたら知らせたいとき（Primer シナリオ3）</td><td style="text-align:center;">○</td></tr><tr><td><code>ARIMA</code></td><td>自己回帰と移動平均で1本の時系列を予測する。等間隔で欠けのないデータが必要</td><td>1つの指標を細かく調整して予測したいとき。保存できないので、使うたびに fit する</td><td style="text-align:center;">×</td></tr><tr><td><code>| predict（コマンド）</code></td><td>Splunk 標準の予測コマンド。LLP、LLP5 などの方式で、周期と傾きを自動で扱う</td><td>手軽に予測したいとき。演習1の Showcase の予測値はこれ</td><td style="text-align:center;">―</td></tr><tr><td><code>FineTuneCDTSM</code></td><td>時系列の基盤モデル（TSFM）を自分のデータで追加学習したもの。AI Toolkit の Fine tune time series foundation model の画面で作って公開すると使える</td><td>ふつうの予測モデルでは周期や傾向をとらえきれないとき</td><td style="text-align:center;">○</td></tr></tbody></table></section><footer class="aitk-next"><b>アルゴリズム</b><a href="algo_overview">概要</a><a href="algo_outlier">外れ値（Outlier）</a><a href="algo_predictive">予測（Predictive）</a><a href="algo_categorization">分類（Categorization）</a></footer></div>'
+ALGO_CATEGORIZATION = '<div class="aitk-doc"><header class="aitk-doc-hero"><span class="aitk-kicker">アルゴリズム ／ 分類（Categorization）</span><h1>分類・グループ分けのアルゴリズム</h1><p>データの中身を知って、いま起きていることにすばやく対応するための道具です。ラベルを使わずに似た者同士をまとめるクラスタリングと、送信元と宛先のようなつながりを網の目として調べるグラフの分析があります。</p></header><section><h2>クラスタリング</h2><p>ラベルを使わずに、似た者同士をまとめます。カテゴリの予測（分類）は上の表を見てください。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>KMeans</code></td><td>数値の項目で、点を k 個のまとまりに分ける。各まとまりは中心で表される。k は自分で決める</td><td>端末やユーザーを、通信量や操作の量で、似た者同士のグループに分けたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>XMeans／GMeans</code></td><td>まとまりの数 k を自動で決める KMeans。GMeans は、まとまりが正規分布に近くなるまで分け続ける</td><td>いくつのグループに分かれるか見当がつかないとき</td><td style="text-align:center;">○</td></tr><tr><td><code>Birch</code></td><td>大量のデータを少しずつまとめていく。partial_fit で追加の学習ができる</td><td>データが多く、KMeans では重いとき</td><td style="text-align:center;">○</td></tr><tr><td><code>DBSCAN</code></td><td>点の密集しているところをまとまりとし、どこにも属さない点はノイズとして残す。形がいびつなまとまりも見つけられる。k は不要</td><td>まとまりから外れた点（ノイズ）も一緒に見たいとき。保存できないので、使うたびに fit する</td><td style="text-align:center;">×</td></tr><tr><td><code>SpectralClustering</code></td><td>点どうしのつながりの強さからまとまりを作る。入れ子や輪のような形にも強いが、データが多いと重い</td><td>形の複雑なまとまりを、数千行程度までのデータで調べるとき</td><td style="text-align:center;">×</td></tr></tbody></table><p class="aitk-note"><b>保存</b>の列は、<code>into</code> でモデルを保存できるか（あとで <code>apply</code> できるか）を、この検証環境の AI Toolkit 6.1 で実際に試した結果です。× は使うたびに fit します。「―」はモデルを作らないものです。</p></section><section><h2>つながりの分析（グラフ）</h2><p>送信元と宛先のような2つの項目を、点と線の網の目として扱います。</p>\n  <table class="aitk-table aitk-table-fixed"><thead><tr><th style="width:19%;">アルゴリズム</th><th style="width:37%;">特徴</th><th>どんなときに使うか（セキュリティの例）</th><th style="width:7%;">保存</th></tr></thead><tbody><tr><td><code>GraphCentrality</code></td><td>送信元と宛先のつながりを網の目として見て、各点がどれだけ中心にいるか（degree_centrality など）を求める</td><td>多くの相手とつながっている端末やサーバー（ハブ）を見つけたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>GraphConnectedComponents</code></td><td>つながっている点どうしを1つのグループにまとめる</td><td>互いに通信している端末のかたまりを見つけたいとき。横展開の範囲を調べるときなど</td><td style="text-align:center;">○</td></tr><tr><td><code>GraphLabelPropagation</code></td><td>つながりの強さから、網の目をコミュニティに分ける</td><td>つながり方の似た端末やアカウントのグループを見つけたいとき</td><td style="text-align:center;">○</td></tr><tr><td><code>MinimumSpanningTree</code></td><td>すべての点を最小の重みでつなぐ木を作る</td><td>この環境（AI Toolkit 6.1）では実行時にエラーになり、動かなかった</td><td style="text-align:center;">―</td></tr></tbody></table></section><section><h2>カテゴリの予測（分類）</h2><p>資料ではカテゴリの予測（Categorical Regression）もこの大項目に入っています。正解の付いたデータで学ぶ方法なので、<a href="algo_predictive">予測</a>のページにまとめています。</p></section><footer class="aitk-next"><b>アルゴリズム</b><a href="algo_overview">概要</a><a href="algo_outlier">外れ値（Outlier）</a><a href="algo_predictive">予測（Predictive）</a><a href="algo_categorization">分類（Categorization）</a></footer></div>'
 
 # ---------------------------------------------------------------- where each algorithm lives in AI Toolkit Experiments
 DOC61 = "https://help.splunk.com/en/splunk-enterprise/apply-machine-learning/use-ai-toolkit/6.1.0"
@@ -2252,7 +2252,7 @@ n1 = [
      "checks": ["全部で40行。7/20 07:34 〜 7/21 11:04 の2分間のうち、失敗のあったものだけ",
                 "端末は4台（winserver 16行、MKRAEUSEN-D 11行、abungstein-l 8行、rschlitzer-d 5行）。どれも行が少ないので、分布の推定は粗くなる"]},
     {"id": "n1-4", "tag": "GUI 1-4", "title": "Smart Outlier Detection で外れ値を探す",
-     "body": ["AI Toolkit アプリの <b>Experiments</b> で <b>Smart Outlier Detection</b> を選び、Experiment を作ります（資料 P57-63）。"],
+     "body": ["AI Toolkit アプリの <b>Experiments</b> で <b>Smart Outlier Detection</b> を選び、Experiment を作ります。"],
      "extra_html": exp_steps([
          ("開く", '<a class="aitk-open" target="_blank" href="../Splunk_ML_Toolkit/experiments">AI Toolkit の Experiments を開く ↗</a> → <b>Smart Outlier Detection</b> → <b>Create New Experiment</b>。Experiment Title は <code>Password Spraying Attack - 自分のユーザー名</code>（共用の環境で、ほかの人とぶつからないように）'),
          ("Define", "データソースに <b>Search</b> を選び、Search 1-3 の SPL を貼る。時間範囲は <b>2026/7/12 〜 7/22</b> にする。Data Preview に40行が出たら <b>Next</b>"),
@@ -2306,7 +2306,7 @@ n2 = [
      "checks": ["24行。1行が「あるユーザーのある日の 4648 の件数」",
                 "件数は1〜26。平均は約7.7、標準偏差は約6.3"]},
     {"id": "n2-3", "tag": "GUI 2-3", "title": "Detect Numeric Outliers で外れ値を探す",
-     "body": ["AI Toolkit アプリの <b>Experiments</b> で <b>Detect Numeric Outliers</b> を選び、Experiment を作ります（資料 P70-76）。"],
+     "body": ["AI Toolkit アプリの <b>Experiments</b> で <b>Detect Numeric Outliers</b> を選び、Experiment を作ります。"],
      "extra_html": exp_steps([
          ("開く", '<a class="aitk-open" target="_blank" href="../Splunk_ML_Toolkit/experiments">AI Toolkit の Experiments を開く ↗</a> → <b>Detect Numeric Outliers</b> → <b>Create New Experiment</b>。Experiment Title は <code>Escalated Privilege Windows - 自分のユーザー名</code>'),
          ("検索", "<b>Enter a search</b> に Search 2-2 の SPL を入れ、時間範囲を <b>2026/7/12 〜 7/22</b> にして検索する"),
@@ -2355,14 +2355,14 @@ n3 = [
                 "User-Agent は110種類。多いのは ELB-HealthChecker/2.0（約5.5万件）、UserAgent（約2.9万件）、Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)（約2.9万件）",
                 "MSIE 6.0 のような古いブラウザを名乗る通信も、これだけ数が多いと「珍しい値」にはならない。次の GUI 3-2 の方法で見つかるのは、数の少ない値だけ"]},
     {"id": "n3-2", "tag": "GUI 3-2", "title": "Detect Categorical Outliers で珍しい User-Agent を探す",
-     "body": ["AI Toolkit アプリの <b>Experiments</b> で <b>Detect Categorical Outliers</b> を選び、Experiment を作ります（資料 P79-83）。"],
+     "body": ["AI Toolkit アプリの <b>Experiments</b> で <b>Detect Categorical Outliers</b> を選び、Experiment を作ります。"],
      "extra_html": exp_steps([
          ("開く", '<a class="aitk-open" target="_blank" href="../Splunk_ML_Toolkit/experiments">AI Toolkit の Experiments を開く ↗</a> → <b>Detect Categorical Outliers</b> → <b>Create New Experiment</b>。Experiment Title は <code>HTTP User Agent Outliers - 自分のユーザー名</code>'),
          ("検索", "<b>Enter a search</b> に Search 3-1 の SPL を入れ、時間範囲を <b>2026/7/12 〜 8/11</b>（または All time）にして検索する"),
          ("設定", "<b>Field(s) to analyze</b> に http_user_agent を選び、<b>Detect Outliers</b> を押す"),
          ("見る", "<b>Outlier(s)</b> の数と、<b>Data and Outliers</b> の表（probable_cause、isOutlier）を見る"),
          ("比べる", "Field(s) to analyze を bytes_in や bytes_out に変えて、もう一度 Detect Outliers を押す。数値の項目をカテゴリとして扱うと、どうなるかを見る"),
-     ]) + ('<h4 style="margin:14px 0 4px;">考えること（資料 P78）</h4>'
+     ]) + ('<h4 style="margin:14px 0 4px;">考えること</h4>'
            + ul(["裏で何をしているか。値の出やすさを確率で求め、めったに出ない値に印を付けている（次の Search 3-3）",
                  "bytes_in のような数値を「値の種類」として数えると、たまたま一度しか出なかったバイト数が珍しい値になる。数値の外れ値には、Lab1 や Lab2 の方法が向いている",
                  "珍しいことと、悪いことは違う。印が付いたものは、調べる候補として扱う"])),
@@ -2380,7 +2380,7 @@ n3 = [
     text_row('<div class="aitk-step-head"><span class="aitk-tag aitk-tag-info">解説</span><h2>User-Agent をクラスタリングする理由</h2></div>'
              '<p>User-Agent の文字列は、バージョンの数字が1つ違うだけで別の値になります。Detect Categorical Outliers は値が一致するかどうかしか見ないので、'
              '<code>Chrome/84.0.4147.105</code> と <code>Chrome/84.0.4147.125</code> も、まったく別の珍しい値として扱います。</p>'
-             '<p>そこで、文字列の「似ている度合い」で考えます（資料 P84）。</p>'
+             '<p>そこで、文字列の「似ている度合い」で考えます。</p>'
              '<p class="aitk-flow">User-Agent → TF-IDF で数値にする → KMeans で似たものをまとめる → まとまりの中心から遠いものを調べる</p>'
              + ul(["<b>TF-IDF</b>：文字列を、単語や文字のつながり（N-gram）ごとの重みの数値に変える。どの文字列にも出る語は軽く、その文字列にしか出ない語は重くなる",
                    "<b>KMeans</b>：数値にした User-Agent を、似たもの同士の k 個のまとまりに分ける。ラベルは要らない",
@@ -2414,7 +2414,7 @@ n3 = [
                 "上位はインターネットを調べて回るスキャナーや、スクリプトのライブラリ。社内のブラウザや Windows の部品は下のほうに来る",
                 "上位の User-Agent は、送信元の IP、宛先、action、バイト数を合わせて見てから、アラートやリスクの対象にする"]},
     text_row('<div class="aitk-step-head"><span class="aitk-tag aitk-tag-gui" style="background:#7b3fa0;">GUI</span><h2>マルウェアの通信を予測する（Predict the Presence of Malware）</h2></div>'
-             '<p>Lab3 の最後（資料 P92-94）は、AI Toolkit の Showcase の <b>Predict the Presence of Malware</b> を開き、firewall_traffic.csv でマルウェアの通信を当てる分類モデルを見ます。'
+             '<p>Lab3 の最後は、AI Toolkit の Showcase の <b>Predict the Presence of Malware</b> を開き、firewall_traffic.csv でマルウェアの通信を当てる分類モデルを見ます。'
              'ここまでの Lab はラベルの要らない方法でしたが、これは正解のラベルを使う教師あり学習です。</p>'
              '<p>この内容は、Rookies の演習2で SPL と画面の両方を使って詳しく扱っています。<a class="aitk-open" href="rookies_ex2">Rookies 演習2 を開く ↗</a></p>'
              '<h4 style="margin:14px 0 4px;">資料の問い</h4>'
@@ -2449,7 +2449,7 @@ n4 = [
           '<code>| ai</code> はプロンプトを外部のサービスに送るので、本番では送ってよいデータか、誰が使えるかを決めてから使います。</p>'),
      "refs": ["n97_0.png"]},
     {"id": "n4-3", "tag": "Search 4-3", "title": "LLM に対処の手順を提案させる（資料のプロンプト）",
-     "body": ["資料 P100 の SPL です。LLM に送るのは先頭の2行です。",
+     "body": ["資料の SPL です。LLM に送るのは先頭の2行です。",
               "各行の値が <code>'{HTTP_Code}'</code> のように書いたところに入り、行ごとに別のプロンプトになって LLM に送られます。1行あたり10〜20秒かかります。"],
      "spl": f'| inputlookup http_error_dataset.csv\n| head 2\n| ai prompt="{N4_PROMPT}" {N_LLM}',
      **N_LKP, "range_note": N_RANGE_LKP,
@@ -2465,7 +2465,7 @@ n4 = [
      "views": [("table_wrap", "LLM の答え（ai_result_1）", None, "| table Request_ID HTTP_Code ai_result_1")],
      "checks": ["日本語で、番号付きの4〜5行の手順が返る。この環境では1行あたり200字前後で、Search 4-3 の約10分の1の長さだった",
                 "答えが、渡した HTTP_Code、Error_Message、Root_Cause に沿っているか。もっともらしいが間違った手順が混ざっていないかを確かめる"],
-     "extra_html": ('<h4 style="margin:14px 0 4px;">LLM の答えを使うときの注意（資料 P101）</h4>'
+     "extra_html": ('<h4 style="margin:14px 0 4px;">LLM の答えを使うときの注意</h4>'
                     + ul(["LLM は、自信のある書き方で間違ったことを答えることがある。答えは人が読んで確かめてから使う",
                           "送るデータに、個人情報や秘密の情報が入っていないかを確かめる。無料枠では、送った内容がサービスの改善に使われる場合がある",
                           "答えをそのまま自動で実行しない。対処を自動化するなら、範囲を決め、人の承認を挟む"]))},
