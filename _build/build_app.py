@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.9"
+VERSION = "1.3.10"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -2262,14 +2262,17 @@ n1 = [
      ]) + '<p>Outlier tolerance threshold は「分布の端のどれだけを外れ値の範囲にするか」です。0.0017 なら端の0.17%です。行の0.17%が外れ値になるという意味ではありません。</p>',
      "refs": ["n61_0.png", "n62_0.png", "n63_0.png"],
      "checks": ["資料の画面では Total Outliers が 2（winserver の2点）",
-                "この検証環境で同じ設定を SPL で実行すると（次の Search 1-5）、外れ値は1点だった。行の少ない分布の推定はわずかな違いで変わるので、数が資料と違っても慌てない",
+                "同じ設定でも、<b>Detect Outliers を押すたびに数が変わる</b>。Distribution type が Auto だと、端末ごとに正規、指数、ガウス KDE、ベータのどれを当てはめるかが実行のたびに変わるため。端末ごとの行が5〜16行しかなく、どの分布もほとんど同じくらいよく当てはまるので、選ばれる分布が揺れる",
+                "この検証環境で同じ設定を12回実行すると、外れ値は0〜5点だった。いちばん多かったのは1点（rschlitzer-d の unique_accounts=0）。資料と同じ winserver の2点（7/21 04:48 の unique_accounts=2 と、10:06 の 0）が出た回もあった。画面の数が1でも2でも、設定の誤りではない",
                 "Search 1-2 で見つかった 172.16.50.200 の4アカウントは、DensityFunction では外れ値にならない。MKRAEUSEN-D の分布の中に収まっているため"]},
     {"id": "n1-5", "tag": "Search 1-5", "title": "GUI 1-4 と同じことを SPL でやる",
      "body": ["Smart Outlier Detection が裏で実行する <code>fit DensityFunction</code> を、そのまま SPL で書いたものです。<code>into</code> を付けていないので、モデルは保存しません。"],
      "spl": N1_PREP + "\n| fit DensityFunction unique_accounts by dvc dist=auto threshold=0.0017\n| where 'IsOutlier(unique_accounts)'=1\n| table _time IpAddress dvc unique_accounts tried_accounts",
      **N_JUL, "range_note": N_RANGE_JUL,
      "views": [("table", "外れ値になった行")],
-     "checks": ["この環境では1行（7/21 10:06、172.16.50.206 から rschlitzer-d への、アカウント名が空の失敗。unique_accounts は 0）",
+     "checks": ["何度か実行すると、行の数が変わる（この環境の12回では0〜5行、いちばん多いのは1行）。1行のときは、7/21 10:06 に 172.16.50.206 から rschlitzer-d への、アカウント名が空の失敗（unique_accounts は 0）",
+                "<code>| summary</code> で見ると、端末ごとに選ばれた分布（Auto: Normal、Auto: Gaussian KDE など）が実行のたびに違う。これが数の変わる理由",
+                "毎回同じ結果にしたいときは、fit に <code>random_state=7</code> のように乱数の種を足す。この環境では random_state=7 で毎回3行（winserver の2点と rschlitzer-d の1点）になり、資料の winserver の2点も入った。<code>dist=norm</code> のように分布を決め打ちする方法もある（このデータでは0行）",
                 "ジョブの注意に「Too few training points in some groups」と出る。GUI の Learn の注意と同じ",
                 "Search 1-2 と結果が違う。単純な統計は「4以上」という人の知識を入れているが、DensityFunction は分布の形だけで判断している"]},
     {"id": "n1-6", "tag": "Search 1-6", "title": "（追加）9月のスプレーにも同じ SPL を当てる",
