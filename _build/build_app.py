@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.14"
+VERSION = "1.3.15"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -2092,7 +2092,7 @@ N1_PREP = ('index="main" sourcetype="xmlwineventlog" EventCode=4625 LogonType=3\
            '| eval DayOfWeek=strftime(_time,"%w")\n'
            '| eval isWeekend=if(DayOfWeek>=1 AND DayOfWeek<=5,0,1)\n'
            '| sort - comp_avg')
-N2_BASE = 'index="main" source="*WinEventLog:Security" EventCode=4648 host!="WIN11-SAKURA"'
+N2_BASE = 'index="main" source="*WinEventLog:Security" EventCode=4648'
 N2_DAILY = N2_BASE + "\n| bucket _time span=1d\n| stats count by src_user _time"
 N3_BASE = 'index="main" TERM(agent) sourcetype="stream:http" src_ip="*" http_user_agent="*"'
 N3_TFIDF = (N3_BASE + "\n| table http_user_agent src_ip dest_ip action dest_port bytes_in bytes_out\n"
@@ -2147,7 +2147,6 @@ EXPLAIN.update({
     "n2-1": [
         ('index="main" source="*WinEventLog:Security"', "Windows のセキュリティログに絞る。source の先頭の * で XmlWinEventLog:Security も当てはまる"),
         ("EventCode=4648", "明示的な資格情報を使ったログオンの試み。RunAs やスケジュールタスクでも出るので、出ただけでは怪しいとは言えない"),
-        ('host!="WIN11-SAKURA"', "WIN11-SAKURA という端末のログを除く"),
         ("| timechart count by src_user", "日ごと（期間が11日なので自動で1日刻み）、src_user ごとに件数を数え、ユーザーごとの線にする"),
     ],
     "n2-2": [
@@ -2372,8 +2371,8 @@ n2 = [
      "body": ["Technique #2 では、AI Toolkit の Detect Numeric Outliers を使います。次の GUI 2-3 で入力欄に入れる SPL です。"],
      "spl": N2_DAILY, **N_JUL, "range_note": N_RANGE_JUL,
      "views": [("table", "ユーザーと日ごとの件数")],
-     "checks": ["24行。1行が「あるユーザーのある日の 4648 の件数」",
-                "件数は1〜26。平均は約7.7、標準偏差は約6.3"]},
+     "checks": ["28行。1行が「あるユーザーのある日の 4648 の件数」",
+                "件数は1〜26。平均は約7.1、標準偏差は約6.1"]},
     {"id": "n2-3", "tag": "GUI 2-3", "title": "Detect Numeric Outliers で外れ値を探す",
      "body": ["AI Toolkit アプリの <b>Experiments</b> で <b>Detect Numeric Outliers</b> を選び、Experiment を作ります。"],
      "extra_html": exp_steps([
@@ -2385,15 +2384,15 @@ n2 = [
      ]),
      "refs": ["n73_0.png", "n74_0.png", "n75_0.png", "n76_0.png"],
      "checks": ["外れ値は1つ。資料の画面では約20件の点が黄色になっている",
-                "この環境では 7/21 の MKRAEUSEN-D$ の26件（上限は約20.3）"]},
+                "この環境では 7/21 の MKRAEUSEN-D$ の26件（上限は約19.4）"]},
     {"id": "n2-4", "tag": "Search 2-4", "title": "GUI 2-3 と同じことを SPL でやる",
      "body": ["Detect Numeric Outliers の Standard Deviation は、全行の平均±標準偏差×倍率を範囲にします。Fields to split by を空にしたので、ユーザーに分けずに1つの範囲です。"],
      "spl": N2_DAILY + "\n| eventstats avg(count) as avg stdev(count) as stdev\n| eval lowerBound=avg-stdev*2, upperBound=avg+stdev*2\n| eval isOutlier=if(count<lowerBound OR count>upperBound,1,0)",
      **N_JUL, "range_note": N_RANGE_JUL,
      "views": [("table", "外れ値の行", None, "| where isOutlier=1 | table _time src_user count avg stdev upperBound"),
-               ("table", "全24行", None, "| sort - count | table _time src_user count upperBound isOutlier")],
+               ("table", "全28行", None, "| sort - count | table _time src_user count upperBound isOutlier")],
      "checks": ["外れ値は1行。2026/7/21 の MKRAEUSEN-D$、26件",
-                "lowerBound はマイナスになる（平均7.7−標準偏差6.3×2）。件数は0より小さくならないので、下側の外れ値は出ない",
+                "lowerBound はマイナスになる（平均7.1−標準偏差6.1×2）。件数は0より小さくならないので、下側の外れ値は出ない",
                 "倍率を 1.5 にすると、7/20 の KTANNINSKY-L$（19件）も外れ値になる"]},
     {"id": "n2-5", "tag": "Search 2-5", "title": "外れ値の中身を調べる",
      "body": ["外れ値の日の MKRAEUSEN-D$ の 4648 を、誰の資格情報を、どこに向けて、どのプロセスが使ったかで分けます。",
