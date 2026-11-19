@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.6"
+VERSION = "1.3.7"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -124,8 +124,28 @@ def step_rows(s):
                 f'{explain_block(s["id"])}'
                 f'<p class="aitk-hint">「▶ {s["tag"]} を実行」を押すと、このサーチが走って下に結果が出ます。</p>'
                 '</div></html>')
-    nxt = (f'<html><div class="aitk-nextaction"><h4>Next Action</h4>{s["next"]}</div></html>' if s.get("next") else "")
-    row2 = f'<row><panel>{btn}{spl_html}{"".join(els)}{nxt}</panel></row>'
+    nxt = ""
+    if s.get("next"):
+        nxt_spl, nxt_els, nxt_btn = "", "", ""
+        if s.get("next_spl"):  # runnable follow-up search inside the Next Action box
+            ntok = tok + "_next"
+            nq = urllib.parse.urlencode({"q": "search " + s["next_spl"].strip(),
+                                         "earliest": s["earliest"], "latest": s["latest"]})
+            nxt_spl = ('<div class="aitk-run-head"><b>続けて実行するサーチ</b><span>時間範囲: ' + rng + '</span>'
+                       f'<a class="aitk-open" target="_blank" href="search?{html.escape(nq)}">Search で開く ↗</a></div>'
+                       + spl_block(s["next_spl"]) + explain_block(s["id"] + "n")
+                       + '<p class="aitk-hint">下の「▶ Next Action のサーチを実行」を押すと結果が出ます。</p>')
+            nxt_btn = (f'<input type="link" token="{ntok}" searchWhenChanged="true"><label></label>'
+                       '<choice value="1">▶ Next Action のサーチを実行</choice></input>')
+            nxt_els = viz_xml(s.get("next_view", "table_long"),
+                              search_xml(s["next_spl"], ntok, s["earliest"], s["latest"]),
+                              s.get("next_title", "")).replace(">", f' depends="${ntok}$">', 1)
+        nxt = (f'<html><div class="aitk-nextaction"><h4>Next Action</h4>{s["next"]}{nxt_spl}</div></html>')
+        row2 = f'<row><panel>{btn}{spl_html}{"".join(els)}{nxt}</panel></row>'
+        if nxt_btn:
+            row2 += f'<row><panel>{nxt_btn}{nxt_els}</panel></row>'
+        return [divider(s["tag"]), row1, row2]
+    row2 = f'<row><panel>{btn}{spl_html}{"".join(els)}</panel></row>'
     return [divider(s["tag"]), row1, row2]
 
 
@@ -2168,6 +2188,11 @@ EXPLAIN.update({
         ("| fields - http_user_agent_tfidf_*", "TF-IDF の列を消して、結果を見やすくする"),
         ("| stats max(cluster_distance) by cluster http_user_agent | sort - max(cluster_distance)", "User-Agent ごとに距離の最大値を取り、中心から遠い順に並べる。上にあるものほど、ほかと似ていない"),
     ],
+    "n1-2n": [
+        ('IpAddress=172.16.50.200', "Search 1-2 で見つかった送信元だけに絞る。2分ごとにまとめず、失敗を1件ずつ見る"),
+        ("| sort 0 _time", "古い順に並べ、どの順番で試したかを追えるようにする"),
+        ("| table … SubStatus TargetUserName", "どの端末（dvc）に、どのアカウント（TargetUserName）で、どんな理由（SubStatus）で失敗したかを並べる"),
+    ],
     "n4-1": [
         ("| inputlookup http_error_dataset.csv", "HTTP のエラーと、その原因を書いた10行のルックアップを読む"),
     ],
@@ -2202,10 +2227,15 @@ n1 = [
      "checks": ["1行だけ出る。資料と同じく、172.16.50.200 が 2026/7/21 06:08 からの2分間に、MKRAEUSEN-D の4アカウントを試している",
                 "tried_accounts は damnyoubud、mallory、mkraeusen、what_didbudsay_this_was。実在しないような名前が混ざっている",
                 "comp_avg は約1.57、comp_std は約1.13、upperBound は約3.84。4 はぎりぎり上限を超えた"],
-     "next": (ul(["172.16.50.200 の失敗をすべて並べると、7/20 の夜に fatjeta で4台の端末を順に試し、7/21 の朝に MKRAEUSEN-D で mkraeusen、malloryk、Administrator などを試している",
-                          "失敗の理由（SubStatus）は、0xc0000064 が「そのユーザー名は存在しない」、0xc000006a が「パスワードが違う」。malloryk と Administrator は、アカウントはあってパスワードだけ違った",
+     "next": (ul(["172.16.50.200 の失敗をすべて並べると16件ある。7/20 19:35〜19:40 に fatjeta で4台の端末を順に試し、7/21 は MKRAEUSEN-D に、05:44〜06:09 に mkraeusen、malloryk、mallory など、10:11 に welcome14、11:02〜11:05 に Administrator（4回）と malloryk を試している",
+                          "Administrator が Search 1-2 に出ないのは、2分ごとの<b>アカウントの種類</b>（dc）で数えるため。同じ名前を何度試しても1種類なので、11:02 からの2分間は2種類（Administrator、malloryk）、11:04 からは1種類で、4に届かない。1つのアカウントを何度も試す総当たりは、この検知では見つからない（count を見る条件が別に要る）",
+                          "失敗の理由（SubStatus）は、0xc0000064 が「そのユーザー名は存在しない」、0xc000006a が「パスワードが違う」、0xc0000072 が「アカウントが無効」。Administrator は 0xc000006a が3回で、最後の 11:05 は 0xc0000072。malloryk は 05:56 が 0xc000006a、11:03 が 0xc0000064",
                           "同じ送信元から 4624（ログオン成功）が出ていないか、172.16.50.200 はどの端末か、を続けて確かめる"])
-             + '<p class="aitk-note">外れ値は「調べる候補」です。攻撃だと決めるのは、認証、端末、アカウントの情報を合わせて見てからです。</p>')},
+             + '<p class="aitk-note">外れ値は「調べる候補」です。攻撃だと決めるのは、認証、端末、アカウントの情報を合わせて見てからです。</p>'),
+     "next_spl": ('index=main sourcetype="XmlWinEventLog" EventCode=4625 LogonType=3 IpAddress=172.16.50.200\n'
+                  "| sort 0 _time\n"
+                  "| table _time host dvc IpAddress EventCode Computer Logon_Type SubStatus TargetUserName"),
+     "next_title": "172.16.50.200 からのログオン失敗（古い順）"},
     {"id": "n1-3", "tag": "Search 1-3", "title": "Smart Outlier Detection に渡すデータを作る",
      "body": ["Technique #2 では、AI Toolkit の Smart Outlier Detection を使います。Search 1-2 では上限を自分で決めましたが、こちらでは端末ごとの unique_accounts の分布を AI Toolkit に推定させます。",
               "次の GUI 1-4 で Define に貼る SPL です。先にここで実行して、どんなデータになるかを見ておきます。"],
