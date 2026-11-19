@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.10"
+VERSION = "1.3.11"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -2263,14 +2263,50 @@ n1 = [
      "refs": ["n61_0.png", "n62_0.png", "n63_0.png"],
      "checks": ["資料の画面では Total Outliers が 2（winserver の2点）",
                 "同じ設定でも、<b>Detect Outliers を押すたびに数が変わる</b>。Distribution type が Auto だと、端末ごとに正規、指数、ガウス KDE、ベータのどれを当てはめるかが実行のたびに変わるため。端末ごとの行が5〜16行しかなく、どの分布もほとんど同じくらいよく当てはまるので、選ばれる分布が揺れる",
-                "この検証環境で同じ設定を12回実行すると、外れ値は0〜5点だった。いちばん多かったのは1点（rschlitzer-d の unique_accounts=0）。資料と同じ winserver の2点（7/21 04:48 の unique_accounts=2 と、10:06 の 0）が出た回もあった。画面の数が1でも2でも、設定の誤りではない",
+                "この検証環境で同じ設定を24回実行すると、外れ値は0〜5点だった。1点（rschlitzer-d の unique_accounts=0）と3点になることが多く、5点は1回だけ。資料と同じ winserver の2点（7/21 04:48 の unique_accounts=2 と、10:06 の 0）が出た回もあった。画面の数が1でも2でも、設定の誤りではない",
                 "Search 1-2 で見つかった 172.16.50.200 の4アカウントは、DensityFunction では外れ値にならない。MKRAEUSEN-D の分布の中に収まっているため"]},
+    text_row('<div class="aitk-step-head"><span class="aitk-tag aitk-tag-gui" style="background:#7b3fa0;">GUI</span><h2>GUI 1-4 の結果画面の読み方</h2></div>'
+             '<p>Learn 画面で Detect Outliers を押すと、右側に結果が出ます。端末（dvc）ごとに「ふだんの unique_accounts の分布」を描き、そこから外れた点を示す画面です。</p>'
+             + img("n1_gui_sod_result.png", "aitk-shot aitk-fig-wide") +
+             '<p class="aitk-note">GUI 1-4 の設定で Detect Outliers を押した画面の一例（Evaluate タブ、密度表示、Top 3 groups、Combined）。この回の Total Outliers は 1</p>'
+             '<table class="aitk-table"><thead><tr><th style="width:30%;">画面の場所</th><th>読み方</th></tr></thead><tbody>'
+             '<tr><td><b>Total Outliers</b></td><td>この回の学習で外れ値になった2分間の数。下の「押すたびに数が変わる理由」のとおり、同じ設定でも押すたびに変わる</td></tr>'
+             '<tr><td><b>表示</b>：Top 3 groups with most outliers<br/><b>グループ</b>：rschlitzer-d、MKRAEUSEN-D、abungstein-l</td><td>外れ値の多い順に3台の端末を選んで描いている。凡例の括弧の数字は端末ごとの外れ値の数で、この画面では rschlitzer-d が 1、ほかは 0。グループのドロップダウンで winserver などほかの端末も選べる</td></tr>'
+             '<tr><td><b>Chart Mode</b>：Combined／分割</td><td>Combined は3台を1枚に重ねるので読みにくい。<b>分割</b>にすると端末ごとに別のグラフになり、読みやすい</td></tr>'
+             '<tr><td>横軸 unique_accounts</td><td>2分間に何種類のアカウントで失敗したか（0〜4）</td></tr>'
+             '<tr><td>棒（右軸 count(unique_accounts)）</td><td>その値の2分間が何回あったか。端末ごとに色が違い、半透明で重なっている。1 の位置が高いのは、どの端末もほとんどの2分間が「1アカウントだけ失敗」だから（MKRAEUSEN-D 8回、abungstein-l 6回、rschlitzer-d 4回が重なっている）。4 の位置の小さな棒は MKRAEUSEN-D の 7/21 06:08、Search 1-2 で見つけたスプレー</td></tr>'
+             '<tr><td>線（左軸 ProbabilityDensity）</td><td>AI Toolkit が推定した分布の形。高いところほど「ふつうに起きる値」。青い線（rschlitzer-d）は 0 から 1 に向かって上がり、1 で鋭く尖る。5回のうち4回が 1 なので「この端末はいつも 1」という分布になっている。左軸の 4.8T（T は兆）は、データが少なく値がほぼ1つしかないために分布が極端に尖った、というだけで、確率ではない。ほかの2台の線は桁が小さく、横軸に張り付いて見える</td></tr>'
+             '<tr><td>横軸の上の点（show outliers）</td><td>外れ値になった行。左下の 0 の点が、7/21 10:06 の rschlitzer-d への、アカウント名が空の失敗。「いつも 1 の端末で 0 が出た」ので外れ値になった</td></tr>'
+             '<tr><td>塗りの範囲（show outlier area）</td><td>「ここに入ったら外れ値」とする確率の低い範囲（この画面では横軸の近くに細く出るだけで見えにくい）。MKRAEUSEN-D は値が 0〜4 にばらついているので分布が広く、4 は外れ値の範囲に入らない。どの分布で試しても、スプレーの 4 は外れ値にならなかった</td></tr>'
+             '<tr><td>左の Outlier tolerance threshold と、上の Outlier tolerance threshold</td><td>左の欄は、Detect Outliers で<b>学習し直す</b>（fit）ときの値。上の Evaluate の欄は、学習済みのモデルで<b>判定だけやり直す</b>（「適用」、apply）ときの値。両方とも 0.0017 にしておく</td></tr>'
+             '<tr><td>左の黄色い警告<br/><code>Too few training points in some groups</code></td><td>端末ごとの2分間が5〜16回しかない、という注意。下の数が揺れる理由そのもの</td></tr>'
+             '</tbody></table>'
+             '<h4 style="margin:14px 0 4px;">端末ごとの unique_accounts（7/12〜7/22、2分ごと）</h4>'
+             '<table class="aitk-table"><thead><tr><th>unique_accounts</th><th>MKRAEUSEN-D</th><th>abungstein-l</th><th>rschlitzer-d</th><th>winserver</th></tr></thead><tbody>'
+             '<tr><td>0</td><td>1回</td><td>1回</td><td>1回</td><td>1回</td></tr>'
+             '<tr><td>1</td><td>8回</td><td>6回</td><td>4回</td><td>14回</td></tr>'
+             '<tr><td>2</td><td>1回</td><td>1回</td><td>―</td><td>1回</td></tr>'
+             '<tr><td>4</td><td>1回（スプレー）</td><td>―</td><td>―</td><td>―</td></tr>'
+             '<tr><td>合計</td><td>11回</td><td>8回</td><td>5回</td><td>16回</td></tr></tbody></table>'
+             '<h4 style="margin:14px 0 4px;">押すたびに数が変わる理由</h4>'
+             '<p>Detect Outliers を押すたびに学習（fit）をやり直します。Distribution type が <b>Auto</b> だと、そのたびに端末ごとに正規、指数、ガウス KDE、ベータのどれを当てはめるかを選び直します。上の表のとおり端末ごとの値はほとんど 1 で、どの分布もほとんど同じくらいよく当てはまるので、選ばれる分布が毎回変わります。</p>'
+             '<p>分布を1つに決めて、同じ設定（threshold 0.0017）を2回ずつ実行した結果です。</p>'
+             '<table class="aitk-table"><thead><tr><th>Distribution type</th><th>外れ値の数</th><th>外れ値になった2分間</th></tr></thead><tbody>'
+             '<tr><td>Normal</td><td>0（2回とも）</td><td>なし</td></tr>'
+             '<tr><td>Exponential</td><td>0（2回とも）</td><td>なし</td></tr>'
+             '<tr><td>Gaussian KDE</td><td>0（2回とも）</td><td>なし</td></tr>'
+             '<tr><td>Beta</td><td>5（2回とも）</td><td>abungstein-l の 0 と 2、rschlitzer-d の 0、winserver の 0 と 2</td></tr>'
+             '<tr><td><b>Auto</b></td><td>0〜5（実行ごとに変わる。24回試して、1 と 3 が多く、5 は1回だけ）</td><td>端末ごとに選ばれた分布によって、上のどれかの組み合わせになる</td></tr></tbody></table>'
+             '<ul><li>ある端末に Beta が選ばれるとその端末の 0 や 2 が外れ値になり、Normal などが選ばれるとその端末の外れ値はなくなる。上の画面の 1 は rschlitzer-d だけに外れ値の出る分布が選ばれた回、資料の画面の 2 は winserver に選ばれた回</li>'
+             '<li>GUI で結果を固定したいときは、Distribution type を Auto 以外にする。ただしこのデータでは 0 か 5 になり、資料の 2 にはならない</li>'
+             '<li>SPL なら、次の Search 1-5 に <code>random_state=7</code> を足すと毎回3点（winserver の2点と rschlitzer-d の1点）に固定できる。GUI の画面には random_state の欄がない</li></ul>'
+             '<p class="aitk-note">端末ごとの2分間が5〜16回では、分布で外れ値を決めるには少なすぎます。どの分布を選ぶかで答えが変わるのはそのためです。端末ごとの行が数十を超える期間で学習させると、Auto でも結果は安定してきます。人が決めた「4アカウント以上」で判定する Search 1-2 のほうが、この Lab ではスプレーをはっきり見つけられます。</p>'),
     {"id": "n1-5", "tag": "Search 1-5", "title": "GUI 1-4 と同じことを SPL でやる",
      "body": ["Smart Outlier Detection が裏で実行する <code>fit DensityFunction</code> を、そのまま SPL で書いたものです。<code>into</code> を付けていないので、モデルは保存しません。"],
      "spl": N1_PREP + "\n| fit DensityFunction unique_accounts by dvc dist=auto threshold=0.0017\n| where 'IsOutlier(unique_accounts)'=1\n| table _time IpAddress dvc unique_accounts tried_accounts",
      **N_JUL, "range_note": N_RANGE_JUL,
      "views": [("table", "外れ値になった行")],
-     "checks": ["何度か実行すると、行の数が変わる（この環境の12回では0〜5行、いちばん多いのは1行）。1行のときは、7/21 10:06 に 172.16.50.206 から rschlitzer-d への、アカウント名が空の失敗（unique_accounts は 0）",
+     "checks": ["何度か実行すると、行の数が変わる（この環境の24回では0〜5行。1行と3行が多い）。1行のときは、7/21 10:06 に 172.16.50.206 から rschlitzer-d への、アカウント名が空の失敗（unique_accounts は 0）",
                 "<code>| summary</code> で見ると、端末ごとに選ばれた分布（Auto: Normal、Auto: Gaussian KDE など）が実行のたびに違う。これが数の変わる理由",
                 "毎回同じ結果にしたいときは、fit に <code>random_state=7</code> のように乱数の種を足す。この環境では random_state=7 で毎回3行（winserver の2点と rschlitzer-d の1点）になり、資料の winserver の2点も入った。<code>dist=norm</code> のように分布を決め打ちする方法もある（このデータでは0行）",
                 "ジョブの注意に「Too few training points in some groups」と出る。GUI の Learn の注意と同じ",
