@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.19"
+VERSION = "1.3.20"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -2483,6 +2483,34 @@ n3 = [
              + ul(["<b>TF-IDF</b>：文字列を、単語や文字のつながり（N-gram）ごとの重みの数値に変える。どの文字列にも出る語は軽く、その文字列にしか出ない語は重くなる",
                    "<b>KMeans</b>：数値にした User-Agent を、似たもの同士の k 個のまとまりに分ける。ラベルは要らない",
                    "<b>cluster_distance</b>：まとまりの中心からの距離。遠いほど、ほかと似ていない"])),
+    text_row('<div class="aitk-step-head"><span class="aitk-tag aitk-tag-info">補足</span><h2>TF-IDF とは</h2></div>'
+             '<p>KMeans のような機械学習は数値しか扱えません。TF-IDF は、文字列を<b>単語ごとの重みの数値</b>に変える方法です。「その文字列の中でよく出る単語」で、かつ「ほかの文字列にはあまり出ない単語」ほど、重みが大きくなります。</p>'
+             '<h4 style="margin:14px 0 4px;">2つの掛け算</h4>'
+             '<table class="aitk-table"><thead><tr><th style="width:22%;">部分</th><th>意味</th><th style="width:34%;">User-Agent で言うと</th></tr></thead><tbody>'
+             '<tr><td><b>TF</b>（Term Frequency、単語の出現の多さ）</td><td>1つの文字列（1行）の中に、その単語が何回出るか</td><td>User-Agent は短いので、ほとんどの単語は1回だけ</td></tr>'
+             '<tr><td><b>IDF</b>（Inverse Document Frequency、珍しさ）</td><td>全部の行のうち、その単語を含む行がどれだけ少ないか。少ないほど大きい。AI Toolkit（scikit-learn）の式は <code>ln((1+行の数)/(1+その単語を含む行の数))+1</code></td><td>3,000行のうち microsoft を含むのは2,034行なので IDF は約1.39。zgrab は10行だけなので約6.61</td></tr>'
+             '<tr><td><b>TF × IDF</b> のあと、長さをそろえる</td><td>行ごとに、重みの2乗の合計が1になるように割る（L2 正規化）。長い文字列も短い文字列も同じ物差しで比べられる</td><td>単語の多い User-Agent ほど、1語あたりの重みは小さくなる</td></tr>'
+             '</tbody></table>'
+             '<h4 style="margin:14px 0 4px;">この環境の重み（Search 3-4 と同じ3,000行）</h4>'
+             '<table class="aitk-table"><thead><tr><th style="width:38%;">User-Agent</th><th>0 でない列（単語＝重み）</th></tr></thead><tbody>'
+             '<tr><td><code>Mozilla/5.0 zgrab/0.x</code></td><td>zgrab=0.942、mozilla=0.336</td></tr>'
+             '<tr><td><code>Microsoft BITS/7.8</code></td><td>bits=0.970、microsoft=0.243</td></tr>'
+             '<tr><td><code>Microsoft-CryptoAPI/10.0</code></td><td>cryptoapi=0.780、microsoft=0.497、10=0.381</td></tr>'
+             '<tr><td><code>python-requests/2.18.4</code></td><td>python=0.649、requests=0.649、18=0.397</td></tr>'
+             '<tr><td><code>Cloud mapping experiment. Contact research@pdrlabs.net</code></td><td>cloud、contact、experiment、mapping、pdrlabs、research が 0.384 ずつ、net=0.342</td></tr>'
+             '</tbody></table>'
+             + ul(["zgrab と mozilla はどちらも1回ずつ出ますが、mozilla は772行に出るありふれた単語、zgrab は10行にしか出ない珍しい単語なので、zgrab の重みがずっと大きくなります。User-Agent の「その文字列らしさ」が、重みの大きい単語に表れます",
+                   "単語の分け方：英数字が2文字以上続くところを1語にし、記号（/ . - ; 空白 など）で区切り、小文字にそろえます。そのため <code>5.0</code> や <code>7.8</code> のような1文字の数字は捨てられ、<code>10.0</code> は <code>10</code>、<code>2.18.4</code> は <code>18</code> だけが残ります",
+                   "似た User-Agent は、同じ列に値を持ちます。<code>Chrome/84.0.4147.135</code> と <code>Chrome/78.0.3904.108</code> の User-Agent は、mozilla、windows、nt、win64、x64、applewebkit、khtml、like、gecko、chrome、safari などの列を共有し、違うのはバージョンの数字の列だけです。値が一致するかしか見ない Search 3-3 と違って、「ほとんど同じ」が数値の近さになります"])
+             + '<h4 style="margin:14px 0 4px;">できる列と、主なパラメーター</h4>'
+             '<p>列の名前は <code>http_user_agent_tfidf_&lt;番号&gt;_&lt;単語&gt;</code> です（例：<code>http_user_agent_tfidf_74_zgrab</code>）。番号は単語のアルファベット順で、1つの単語が1つの列になります。Search 3-4 の3,000行（User-Agent 18種類）からは75列できました。その User-Agent に出ない単語の列は 0 です。</p>'
+             '<table class="aitk-table"><thead><tr><th style="width:26%;">パラメーター</th><th>意味</th><th style="width:30%;">この環境で試した結果</th></tr></thead><tbody>'
+             '<tr><td><code>max_features</code></td><td>作る列の数の上限。出てくる回数の多い単語から選ぶ</td><td>指定しないと上限は100列（この3,000行では75列なので全部入る）。<code>max_features=10</code> だと、10、36、537、cryptoapi、microsoft、mozilla などの10列だけになる</td></tr>'
+             '<tr><td><code>ngram_range</code></td><td>何語のつながりまでを1つの列にするか。<code>1-2</code> なら、1語に加えて「like gecko」のような2語の組も列にする</td><td><code>ngram_range=1-2</code> で列が増え、上限の100列になった</td></tr>'
+             '<tr><td><code>analyzer</code></td><td><code>word</code>（単語、既定）か <code>char</code>（文字のつながり）。<code>char</code> と <code>ngram_range=3-3</code> なら3文字ずつの並びを列にする。綴りが少し違う文字列やランダムな文字列に強い</td><td><code>analyzer=char ngram_range=3-3</code> で100列（上限）</td></tr>'
+             '<tr><td><code>stop_words</code></td><td><code>english</code> にすると、the、of、is のような英語のありふれた語を捨てる</td><td>75列が70列になった</td></tr>'
+             '</tbody></table>'
+             '<p class="aitk-note">Search 3-4 で <code>head 3000</code> に絞るのは、行が増えるほど TF-IDF と次の KMeans が重くなるからです。IDF は渡した行の中で数えるので、どの3,000行を渡すかで重みも変わります。同じ User-Agent が何百回も出ると、その中の単語は「ありふれた単語」として軽くなります。</p>'),
     {"id": "n3-4", "tag": "Search 3-4", "title": "TF-IDF で User-Agent を数値にする",
      "body": ["<code>fit TFIDF</code> は、文字列を機械学習で使える数値の列に変える前処理です。重いので、資料のとおり3,000件に絞ります。"],
      "spl": N3_TFIDF, **N_HTTP, "range_note": N_RANGE_HTTP,
