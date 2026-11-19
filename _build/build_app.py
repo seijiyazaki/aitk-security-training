@@ -7,7 +7,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 APP = "aitk_security_training"
 OUT = os.path.join(os.path.dirname(HERE), APP)
 STATIC = f"/static/app/{APP}"
-VERSION = "1.3.15"
+VERSION = "1.3.16"
 BUILD = int("".join(f"{int(x):02d}" for x in VERSION.split(".")))  # bump static cache with every version
 
 # BOTS v2 covers 2017-08-01..2017-09-01 (UTC)
@@ -2159,6 +2159,14 @@ EXPLAIN.update({
         ("| eval lowerBound=avg-stdev*2, upperBound=avg+stdev*2", "Threshold method の Standard Deviation、Threshold multiplier の 2 にあたる"),
         ("| eval isOutlier=if(count<lowerBound OR count>upperBound,1,0)", "範囲の外なら 1"),
     ],
+    "n2-5s": [
+        ("[ … ]", "サブサーチ。先に実行され、結果が外側のサーチの条件に置き換わる"),
+        ('| search index="main" … EventCode=4648', "サブサーチの先頭。角かっこの中では、最初のコマンドに search を書く"),
+        ("| bin _time span=1d … | eval isOutlier=…", "Search 2-4 と同じ。1日ごと、ユーザーごとの件数から、平均±標準偏差×2 の外に出た行に isOutlier=1 を付ける。exact(2) と fields の行は、GUI 2-3 の Show SPL が生成する書き方のまま"),
+        ("| search isOutlier!=0", "外れ値の行だけを残す"),
+        ("| table src_user", "外れ値のユーザー名だけを返す。外側では <code>src_user=\"MKRAEUSEN-D$\"</code> という条件になる。複数のユーザーが返れば OR でつながる"),
+        ("| stats count by TargetUserName TargetServerName ProcessName src_user", "外れ値のユーザーの 4648 を、誰の資格情報を、どこに向けて、どのプロセスが使ったかで数える"),
+    ],
     "n2-5": [
         ('src_user="MKRAEUSEN-D$"', "外れ値になったユーザーに絞る。時間範囲は外れ値の日（7/21）だけにしてある"),
         ("| stats count by TargetUserName TargetServerName ProcessName", "誰の資格情報を、どこに向けて、どのプロセスが使ったかを数える"),
@@ -2403,6 +2411,29 @@ n2 = [
      "checks": ["いちばん多いのは malloryk の資格情報を svchost.exe が localhost に向けて使った7件。lsass.exe からも3件",
                 "Lab1 で 172.16.50.200 が MKRAEUSEN-D に malloryk を試していた（7/21 05:56）。同じ端末で同じアカウントが出てくる",
                 "DWM-4〜7 は画面の描画のためのアカウントで、ログオンのたびに出るふだんのもの"]},
+    {"id": "n2-5s", "tag": "Search 2-5 補足", "title": "サブサーチで、外れ値のユーザーを自動で渡す",
+     "body": ["Search 2-5 では、外れ値になった <code>MKRAEUSEN-D$</code> を自分で書き込みました。<b>サブサーチ</b>（角かっこ <code>[ … ]</code> の中のサーチ）を使うと、外れ値の判定と中身の調査を1本のサーチにまとめられます。",
+              "Splunk はまず角かっこの中を実行し、その結果を外側のサーチの条件に書き換えてから、外側を実行します。中身は Search 2-4 と同じ計算で、最後に <code>table src_user</code> で外れ値のユーザー名だけを返します。すると外側は <code>src_user=\"MKRAEUSEN-D$\"</code> と書いたのと同じになります。",
+              "ユーザー名を書き込まないので、データが変わって別のユーザーが外れ値になっても、そのまま使えます。アラートにするときの形です。"],
+     "spl": ('index="main" source="XmlWinEventLog:Security" EventCode=4648\n'
+             '[\n'
+             '| search index="main" source="XmlWinEventLog:Security" EventCode=4648\n'
+             '| bin _time span=1d\n'
+             '| stats count by src_user _time\n'
+             '| eventstats avg("count") as avg stdev("count") as stdev\n'
+             '| eval lowerBound=(avg-stdev*exact(2)), upperBound=(avg+stdev*exact(2))\n'
+             "| eval isOutlier=if('count' < lowerBound OR 'count' > upperBound, 1, 0)\n"
+             '| fields _time, "count", lowerBound, upperBound, isOutlier, *\n'
+             '| search isOutlier!=0\n'
+             '| table src_user\n'
+             ']\n'
+             '| stats count by TargetUserName TargetServerName ProcessName src_user\n'
+             '| sort - count'),
+     **N_JUL, "range_note": N_RANGE_JUL,
+     "views": [("table", "外れ値のユーザーが使った資格情報とプロセス（7/12〜7/22）")],
+     "checks": ["src_user はすべて MKRAEUSEN-D$。サブサーチが返したのは、外れ値になったこのユーザーだけ",
+                "上位は taskhostw.exe が MKRAEUSEN-D$ 自身の資格情報を使った8件、malloryk を svchost.exe が7件、lsass.exe が3件。Search 2-5 より件数が多いのは、外側のサーチが7/21だけでなく、時間範囲の7/12〜7/22全体を数えているから",
+                "サブサーチが返すのは src_user だけで、<b>どの日が外れ値だったか</b>は渡していない。外れ値の日だけに絞りたいときは、<code>| table src_user</code> を <code>| eval earliest=_time, latest=_time+86400 | table src_user earliest latest</code> に変える。earliest と latest は、外側のサーチの時間の条件になる。この環境ではこれで Search 2-5 と同じ結果（malloryk 7件、taskhostw.exe 3件、lsass.exe 3件）になった"]},
 ]
 N2_INTRO = ('<div class="aitk-hero-text"><span class="aitk-kicker">AITK Security for Ninja ／ Lab2</span>'
             '<h1>権限昇格のイベントを検知する</h1>'
